@@ -2,12 +2,168 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>27thdeer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>27thdeer</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    /* Header y menú */
+    header {
+      background-color: #1a1a1a;
+      color: white;
+      padding: 0.8rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    nav li {
+      position: relative;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    nav a:hover {
+      background: #333;
+      border-radius: 4px;
+    }
+
+    /* Submenú desplegable */
+    nav li ul {
+      display: none;
+      position: absolute;
+      top: 2.5rem;
+      left: 0;
+      background: #1a1a1a;
+      padding: 0.5rem 0;
+      border-radius: 4px;
+      min-width: 150px;
+    }
+
+    nav li:hover ul {
+      display: block;
+    }
+
+    nav li ul li {
+      width: 100%;
+    }
+
+    nav li ul li a {
+      display: block;
+      padding: 0.5rem 1rem;
+    }
+
+    /* Sección principal */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    main h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    main p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    footer {
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* Botón estilo simple */
+    .button {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      margin-top: 1rem;
+      background: #1a1a1a;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: #333;
+    }
+
+  </style>
 </head>
 <body>
-  <h1>27thdeer</h1>
-  <p>Laboratorio creativo y de desarrollo.</p>
-  <p>Creado por <strong>Bastián Enrique</strong>, desarrollador de software.</p>
+  <!-- HEADER + MENU -->
+  <header>
+    <h1>27thdeer</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Inicio</a></li>
+        <li>
+          <a href="#">Proyectos ▼</a>
+          <ul>
+            <li><a href="#">Web</a></li>
+            <li><a href="#">Software</a></li>
+            <li><a href="#">Creativo</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Sobre el creador</a></li>
+        <li><a href="#">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- SECCIÓN PRINCIPAL -->
+  <main>
+    <div>
+      <h2>Laboratorio creativo y de desarrollo</h2>
+      <p>Bienvenido a 27thdeer, el espacio donde la creatividad se encuentra con la tecnología. Explora mis proyectos y descubre cómo desarrollo software y soluciones digitales innovadoras.</p>
+      <a class="button" href="#">Ver Proyectos</a>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2025 Bastián Enrique. Todos los derechos reservados.
+  </footer>
 </body>
 </html>
