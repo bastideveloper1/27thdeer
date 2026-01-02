@@ -35,5 +35,50 @@
         <p class="footer-text">© 2025 27thDeer.<br>
         Para contactar: bastian@27thdeer.com o comunícate por DM en redes sociales.</p>
     </footer>
+    
+    <!-- Contador de visitas -->
+    <div class="visit-counter" id="visitCounter">
+        <div class="counter-label">Visitas</div>
+        <div class="counter-number" id="counterNumber">10,000</div>
+    </div>
+    
+    <script>
+        // Simulador de contador de visitas
+        (function() {
+            let count = parseInt(localStorage.getItem('visitCount') || '10000');
+            const counterElement = document.getElementById('counterNumber');
+            
+            // Incrementar contador
+            count++;
+            localStorage.setItem('visitCount', count);
+            
+            // Actualizar display con formato
+            counterElement.textContent = count.toLocaleString();
+            
+            // Animación inicial
+            counterElement.style.opacity = '0';
+            setTimeout(() => {
+                counterElement.style.transition = 'opacity 0.5s ease';
+                counterElement.style.opacity = '1';
+            }, 100);
+            
+            // Incremento aleatorio cada 30 segundos
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 30% de probabilidad
+                    count++;
+                    localStorage.setItem('visitCount', count);
+                    counterElement.textContent = count.toLocaleString();
+                    
+                    // Efecto de flash
+                    counterElement.style.color = '#FFD700';
+                    counterElement.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
+                    setTimeout(() => {
+                        counterElement.style.color = '#FFD700';
+                        counterElement.style.textShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
+                    }, 300);
+                }
+            }, 30000);
+        })();
+    </script>
 </body>
 </html>

@@ -432,10 +432,69 @@ h1 {
     }
 }
 
+/* Contador de visitas */
+.visit-counter {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(184, 134, 11, 0.9);
+    color: #FFD700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.visit-counter:hover {
+    background: rgba(255, 215, 0, 0.95);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.visit-counter .counter-label {
+    font-size: 10px;
+    opacity: 0.8;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.visit-counter .counter-number {
+    font-size: 14px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.visit-counter:hover .counter-number {
+    color: #000;
+    text-shadow: none;
+}
+
 @media (max-width: 480px) {
     .main-logo {
         max-width: 150px;
     }
+    
+    .visit-counter {
+        top: 10px;
+        right: 10px;
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+    
+    .visit-counter .counter-number {
+        font-size: 12px;
+    }
+}
     
     h1 {
         font-size: 2rem;
