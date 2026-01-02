@@ -325,11 +325,16 @@ h1 {
     pointer-events: auto !important;
     background-color: #000000 !important; /* Fondo negro puro */
     background-clip: padding-box !important;
-    border: 3px solid #FFD700 !important; /* Borde dorado más grueso */
+    border: 1px solid rgba(255, 215, 0, 0.3) !important; /* Borde dorado sutil */
     border-radius: 0.5rem !important;
     outline: 0 !important;
     max-width: 400px !important; /* Tamaño normal */
     margin: 0 auto !important;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.6),  /* Brillo dorado exterior */
+        0 0 40px rgba(255, 215, 0, 0.4),  /* Brillo dorado medio */
+        0 0 60px rgba(255, 215, 0, 0.2),  /* Brillo dorado lejano */
+        inset 0 0 20px rgba(255, 215, 0, 0.1) !important; /* Brillo dorado interior */
 }
 
 .modal.fade .modal-dialog {
