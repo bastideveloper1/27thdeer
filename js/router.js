@@ -181,6 +181,18 @@
                                             modal.show();
                                         });
                                     });
+                                    
+                                    // Agregar evento para limpiar cuando se cierre el modal
+                                    modalElement.addEventListener('hidden.bs.modal', function () {
+                                        // Eliminar backdrop residual
+                                        const backdrop = document.querySelector('.modal-backdrop');
+                                        if (backdrop) backdrop.remove();
+                                        
+                                        // Remover clases del body
+                                        document.body.classList.remove('modal-open');
+                                        document.body.style.overflow = '';
+                                        document.body.style.paddingRight = '';
+                                    });
                                 } catch (error) {
                                     console.log('Error inicializando modal:', error);
                                 }
