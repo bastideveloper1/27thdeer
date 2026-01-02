@@ -64,6 +64,20 @@
                 if (newMain && currentMain) {
                     // Reemplazar todo el main con su contenido completo
                     currentMain.outerHTML = newMain.outerHTML;
+                    
+                    // Forzar recalculo de layout
+                    const newMainElement = document.querySelector('main');
+                    if (newMainElement) {
+                        newMainElement.style.display = 'none';
+                        newMainElement.offsetHeight; // Trigger reflow
+                        newMainElement.style.display = '';
+                        
+                        // Forzar scroll al inicio
+                        window.scrollTo(0, 0);
+                        
+                        // Forzar recalculo de altura
+                        document.body.offsetHeight;
+                    }
                 }
                 
                 // Actualizar navegación activa
@@ -73,9 +87,6 @@
                 if (addToHistory && path !== window.location.pathname) {
                     window.history.pushState({ path: path }, '', path);
                 }
-                
-                // Scroll al inicio
-                window.scrollTo(0, 0);
                 
                 // Re-inicializar scripts si es necesario
                 reinitializeScripts();
@@ -110,7 +121,7 @@
     
     // Re-inicializar scripts (para Bootstrap modal, etc.)
     function reinitializeScripts() {
-        // Esperar un poco para que el DOM se actualice
+        // Esperar un poco más para que el DOM se actualice completamente
         setTimeout(() => {
             // Si hay modales Bootstrap, re-inicializar
             if (typeof bootstrap !== 'undefined') {
@@ -140,7 +151,10 @@
             
             // Re-inicializar eventos de navegación
             initializeNavigationEvents();
-        }, 10); // Reducido a 10ms para mejor respuesta
+            
+            // Forzar otro reflow para asegurar layout
+            document.body.offsetHeight;
+        }, 50); // Aumentado a 50ms para asegurar que el DOM esté completamente actualizado
     }
     
     // Inicializar eventos de navegación
