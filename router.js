@@ -1,4 +1,4 @@
-// Routing para URLs limpias sin .html
+// Router para URLs limpias sin .html
 (function() {
     'use strict';
     
@@ -10,93 +10,59 @@
         '/contacto': 'contacto.html'
     };
     
-    // Obtener la ruta actual
-    const currentPath = window.location.pathname;
-    
-    // Si estamos en la raíz, no hacer nada
-    if (currentPath === '/' || currentPath.endsWith('/index.html')) {
-        return;
+    // Función para obtener la ruta actual
+    function getCurrentPath() {
+        return window.location.pathname.replace(/\/$/, '') || '/';
     }
     
-    // Si la ruta termina en .html, redirigir a la versión limpia
-    if (currentPath.endsWith('.html')) {
-        const cleanPath = currentPath.replace('.html', '').replace('/index', '');
-        window.history.replaceState({}, '', cleanPath);
-        return;
-    }
-    
-    // Si la ruta está en nuestro mapa pero no existe el archivo, redirigir
-    if (routes[currentPath]) {
-        // Verificar si el archivo existe antes de redirigir
-        fetch(routes[currentPath], { method: 'HEAD' })
-            .then(response => {
-                if (!response.ok) {
-                    // Si el archivo no existe, redirigir a la versión con .html
-                    window.location.href = routes[currentPath];
-                }
-            })
-            .catch(() => {
-                // Si hay error, redirigir a la versión con .html
-                window.location.href = routes[currentPath];
-            });
-    }
-    
-    // Manejar clics en enlaces internos
-    document.addEventListener('click', function(e) {
-        const link = e.target.closest('a');
-        if (!link) return;
-        
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+    // Función para cargar página dinámicamente
+    function loadPage(path, addToHistory = true) {
+        const htmlFile = routes[path];
+        if (!htmlFile) {
+            // Si no hay ruta, redirigir al inicio
+            window.location.href = 'index.html';
             return;
         }
         
-        // Convertir rutas relativas a absolutas
-        let cleanHref = href;
-        if (href.startsWith('./')) {
-            cleanHref = href.substring(2);
-        }
-        
-        // Si es una ruta limpia, prevenir navegación y usar history API
-        if (routes['/' + cleanHref]) {
-            e.preventDefault();
-            window.history.pushState({}, '', '/' + cleanHref);
-            
-            // Cargar el contenido dinámicamente
-            loadPage('/' + cleanHref);
-        }
-    });
-    
-    // Función para cargar páginas dinámicamente
-    function loadPage(path) {
-        const htmlFile = routes[path];
-        if (!htmlFile) return;
-        
         fetch(htmlFile)
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Archivo no encontrado');
+                }
+                return response.text();
+            })
             .then(html => {
-                // Extraer el contenido del main
+                // Parsear HTML y extraer contenido
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
+                
+                // Actualizar título
+                document.title = doc.title;
+                
+                // Reemplazar el contenido main
                 const newMain = doc.querySelector('main');
                 const currentMain = document.querySelector('main');
-                
                 if (newMain && currentMain) {
                     currentMain.innerHTML = newMain.innerHTML;
-                    
-                    // Actualizar título
-                    document.title = doc.title;
-                    
-                    // Actualizar navegación activa
-                    updateActiveNav(path);
-                    
-                    // Scroll al inicio
-                    window.scrollTo(0, 0);
                 }
+                
+                // Actualizar navegación activa
+                updateActiveNav(path);
+                
+                // Actualizar URL en el navegador (sin recargar)
+                if (addToHistory && path !== window.location.pathname) {
+                    window.history.pushState({ path: path }, '', path);
+                }
+                
+                // Scroll al inicio
+                window.scrollTo(0, 0);
+                
+                // Re-inicializar scripts si es necesario
+                reinitializeScripts();
             })
             .catch(error => {
                 console.error('Error cargando página:', error);
-                // Si hay error, redirigir al archivo HTML
+                // Si hay error, redirigir al archivo HTML directamente
                 window.location.href = htmlFile;
             });
     }
@@ -107,17 +73,99 @@
         navLinks.forEach(link => {
             link.classList.remove('active');
             const href = link.getAttribute('href');
-            if (href === currentPath || (currentPath === '/' && href === '/')) {
+            
+            // Convertir href a ruta limpia para comparar
+            let cleanHref = href;
+            if (href === 'index.html') {
+                cleanHref = '/';
+            } else if (href.endsWith('.html')) {
+                cleanHref = '/' + href.replace('.html', '');
+            }
+            
+            if (cleanHref === currentPath) {
                 link.classList.add('active');
             }
         });
     }
     
-    // Manejar navegación con botones del navegador
-    window.addEventListener('popstate', function() {
-        const path = window.location.pathname;
-        if (routes[path]) {
-            loadPage(path);
+    // Re-inicializar scripts (para Bootstrap modal, etc.)
+    function reinitializeScripts() {
+        // Si hay modales Bootstrap, re-inicializar
+        if (typeof bootstrap !== 'undefined') {
+            // Limpiar modales existentes
+            const existingModals = document.querySelectorAll('.modal');
+            existingModals.forEach(modal => modal.remove());
+            
+            // Agregar modal si estamos en proyectos
+            if (window.location.pathname.includes('proyectos')) {
+                const modalHTML = `
+                    <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content site-modal">
+                                <div class="modal-body site-modal-body">
+                                    <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo">
+                                    <p class="site-modal-title" id="linkUnavailableModalLabel">Enlace no disponible</p>
+                                    <p class="site-modal-text">Por el momento no está disponible el enlace.</p>
+                                    <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }
         }
+    }
+    
+    // Manejar clics en enlaces
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+        
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+            return;
+        }
+        
+        e.preventDefault();
+        
+        // Convertir href a ruta limpia
+        let cleanPath = href;
+        if (href === 'index.html') {
+            cleanPath = '/';
+        } else if (href.endsWith('.html')) {
+            cleanPath = '/' + href.replace('.html', '');
+        }
+        
+        // Cargar página
+        loadPage(cleanPath);
     });
+    
+    // Manejar navegación con botones del navegador
+    window.addEventListener('popstate', function(e) {
+        const path = e.state?.path || getCurrentPath();
+        loadPage(path, false);
+    });
+    
+    // Inicialización al cargar la página
+    function initialize() {
+        const currentPath = getCurrentPath();
+        
+        // Si estamos en una ruta limpia que existe en nuestro mapa
+        if (routes[currentPath]) {
+            // Cargar el contenido dinámicamente
+            loadPage(currentPath, false);
+        } else if (currentPath === '/' || currentPath.endsWith('.html')) {
+            // Si estamos en index.html o raíz, actualizar navegación
+            updateActiveNav(currentPath === '/' ? '/' : '/' + currentPath.replace('.html', ''));
+        }
+    }
+    
+    // Esperar a que el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        initialize();
+    }
+    
 })();

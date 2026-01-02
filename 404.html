@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>27th Deer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        // Redirección para rutas limpias
+        (function() {
+            const path = window.location.pathname;
+            
+            // Mapeo de rutas a archivos HTML
+            const routes = {
+                '/acerca': 'acerca.html',
+                '/proyectos': 'proyectos.html',
+                '/contacto': 'contacto.html'
+            };
+            
+            // Si la ruta coincide, redirigir al archivo HTML
+            if (routes[path]) {
+                window.location.replace(routes[path]);
+            } else {
+                // Si no coincide, redirigir al inicio
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 2rem; color: #B8860B;">
+        <h1>Redirigiendo...</h1>
+        <p>Si no eres redirigido automáticamente, <a href="index.html" style="color: #FFD700;">haz clic aquí</a>.</p>
+    </div>
+</body>
+</html>
