@@ -58,11 +58,12 @@
                 // Actualizar título
                 document.title = doc.title;
                 
-                // Reemplazar el contenido main
+                // Reemplazar el contenido main completamente
                 const newMain = doc.querySelector('main');
                 const currentMain = document.querySelector('main');
                 if (newMain && currentMain) {
-                    currentMain.innerHTML = newMain.innerHTML;
+                    // Reemplazar todo el main con su contenido completo
+                    currentMain.outerHTML = newMain.outerHTML;
                 }
                 
                 // Actualizar navegación activa
@@ -109,34 +110,37 @@
     
     // Re-inicializar scripts (para Bootstrap modal, etc.)
     function reinitializeScripts() {
-        // Si hay modales Bootstrap, re-inicializar
-        if (typeof bootstrap !== 'undefined') {
-            // Limpiar modales existentes
-            const existingModals = document.querySelectorAll('.modal');
-            existingModals.forEach(modal => modal.remove());
-            
-            // Agregar modal si estamos en proyectos
-            if (window.location.pathname.includes('proyectos')) {
-                const modalHTML = `
-                    <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content site-modal">
-                                <div class="modal-body site-modal-body">
-                                    <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo">
-                                    <p class="site-modal-title" id="linkUnavailableModalLabel">Enlace no disponible</p>
-                                    <p class="site-modal-text">Por el momento no está disponible el enlace.</p>
-                                    <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal">OK</button>
+        // Esperar un poco para que el DOM se actualice
+        setTimeout(() => {
+            // Si hay modales Bootstrap, re-inicializar
+            if (typeof bootstrap !== 'undefined') {
+                // Limpiar modales existentes
+                const existingModals = document.querySelectorAll('.modal');
+                existingModals.forEach(modal => modal.remove());
+                
+                // Agregar modal si estamos en proyectos
+                if (window.location.pathname.includes('proyectos')) {
+                    const modalHTML = `
+                        <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content site-modal">
+                                    <div class="modal-body site-modal-body">
+                                        <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo">
+                                        <p class="site-modal-title" id="linkUnavailableModalLabel">Enlace no disponible</p>
+                                        <p class="site-modal-text">Por el momento no está disponible el enlace.</p>
+                                        <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal">OK</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+                }
             }
-        }
-        
-        // Re-inicializar eventos de navegación
-        initializeNavigationEvents();
+            
+            // Re-inicializar eventos de navegación
+            initializeNavigationEvents();
+        }, 10); // Reducido a 10ms para mejor respuesta
     }
     
     // Inicializar eventos de navegación
