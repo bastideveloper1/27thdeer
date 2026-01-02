@@ -170,6 +170,13 @@
     function initialize() {
         const currentPath = getCurrentPath();
         
+        // Si estamos en la raíz (/), asegurarnos de que todo funcione correctamente
+        if (currentPath === '/' || window.location.pathname.endsWith('index.html')) {
+            // Actualizar navegación activa
+            updateActiveNav('/');
+            return;
+        }
+        
         // Si estamos en pages/, no hacer carga dinámica (ya estamos en la página correcta)
         if (window.location.pathname.includes('/pages/')) {
             // Solo actualizar navegación activa
@@ -181,9 +188,6 @@
         if (routes[currentPath]) {
             // Cargar el contenido dinámicamente
             loadPage(currentPath, false);
-        } else if (currentPath === '/' || currentPath.endsWith('.html')) {
-            // Si estamos en index.html o raíz, actualizar navegación
-            updateActiveNav(currentPath === '/' ? '/' : '/' + currentPath.replace('.html', ''));
         }
     }
     
