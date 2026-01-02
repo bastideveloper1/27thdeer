@@ -152,6 +152,22 @@
             // Re-inicializar eventos de navegación
             initializeNavigationEvents();
             
+            // Re-inicializar contador de visitas si no existe
+            if (!document.getElementById('visitCounter')) {
+                const counterHTML = `
+                    <div class="visit-counter" id="visitCounter">
+                        <div class="counter-label">Visitas</div>
+                        <div class="counter-number" id="counterNumber">0</div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', counterHTML);
+                
+                // Cargar y ejecutar el script del contador
+                const script = document.createElement('script');
+                script.src = 'visit-counter.js';
+                document.body.appendChild(script);
+            }
+            
             // Forzar otro reflow para asegurar layout
             document.body.offsetHeight;
         }, 50); // Aumentado a 50ms para asegurar que el DOM esté completamente actualizado
