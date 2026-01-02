@@ -134,6 +134,43 @@
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
             }
         }
+        
+        // Re-inicializar eventos de navegación
+        initializeNavigationEvents();
+    }
+    
+    // Inicializar eventos de navegación
+    function initializeNavigationEvents() {
+        // Remover eventos existentes para evitar duplicación
+        const navLinks = document.querySelectorAll('.subtle-nav a');
+        navLinks.forEach(link => {
+            // Clonar el enlace para eliminar eventos antiguos
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+        });
+        
+        // Agregar nuevos eventos
+        document.querySelectorAll('.subtle-nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+                    return;
+                }
+                
+                e.preventDefault();
+                
+                // Convertir href a ruta limpia
+                let cleanPath = href;
+                if (href === 'index.html') {
+                    cleanPath = '/';
+                } else if (href.endsWith('.html')) {
+                    cleanPath = '/' + href.replace('.html', '');
+                }
+                
+                // Cargar página
+                loadPage(cleanPath);
+            });
+        });
     }
     
     // Manejar clics en enlaces
@@ -169,6 +206,9 @@
     // Inicialización al cargar la página
     function initialize() {
         const currentPath = getCurrentPath();
+        
+        // Inicializar eventos de navegación
+        initializeNavigationEvents();
         
         // Si estamos en la raíz (/), asegurarnos de que todo funcione correctamente
         if (currentPath === '/' || window.location.pathname.endsWith('index.html')) {
