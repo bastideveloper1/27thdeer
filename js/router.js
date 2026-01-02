@@ -146,6 +146,20 @@
                         </div>
                     `;
                     document.body.insertAdjacentHTML('beforeend', modalHTML);
+                    
+                    // Re-inicializar eventos de Bootstrap para el nuevo modal
+                    const modalElement = document.getElementById('linkUnavailableModal');
+                    if (modalElement) {
+                        const modal = new bootstrap.Modal(modalElement);
+                        
+                        // Agregar eventos a los enlaces de proyectos
+                        document.querySelectorAll('.project-link[data-bs-toggle="modal"]').forEach(link => {
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                modal.show();
+                            });
+                        });
+                    }
                 }
             }
             
@@ -164,7 +178,7 @@
                 
                 // Cargar y ejecutar el script del contador
                 const script = document.createElement('script');
-                script.src = 'visit-counter.js';
+                script.src = 'js/visit-counter.js';
                 document.body.appendChild(script);
             }
             
