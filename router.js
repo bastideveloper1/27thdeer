@@ -201,35 +201,24 @@
                     cleanPath = '/' + href.replace('.html', '');
                 }
                 
-                // Cargar página
-                loadPage(cleanPath);
+                // Si venimos de 404, recargar la página completamente
+                if (document.referrer.includes('404') || window.location.pathname === '/404.html') {
+                    window.location.href = cleanPath === '/' ? '/' : cleanPath + '.html';
+                    return;
+                }
+                
+                // Navegación normal SPA
+                loadPage(cleanPath, true);
             });
         });
+        
+        // Evento popstate para navegación del navegador
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.path) {
+                loadPage(e.state.path, false);
+            }
+        });
     }
-    
-    // Manejar clics en enlaces
-    document.addEventListener('click', function(e) {
-        const link = e.target.closest('a');
-        if (!link) return;
-        
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
-            return;
-        }
-        
-        e.preventDefault();
-        
-        // Convertir href a ruta limpia
-        let cleanPath = href;
-        if (href === 'index.html') {
-            cleanPath = '/';
-        } else if (href.endsWith('.html')) {
-            cleanPath = '/' + href.replace('.html', '');
-        }
-        
-        // Cargar página
-        loadPage(cleanPath);
-    });
     
     // Manejar navegación con botones del navegador
     window.addEventListener('popstate', function(e) {
