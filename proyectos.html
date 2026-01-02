@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos - 27th Deer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <nav class="subtle-nav">
+        <a href="index.html">Inicio</a>
+        <span class="divider">|</span>
+        <a href="acerca.html">Acerca</a>
+        <span class="divider">|</span>
+        <a href="proyectos.html" class="active">Proyectos</a>
+        <span class="divider">|</span>
+        <a href="contacto.html">Contacto</a>
+    </nav>
+    <main>
+        <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="main-logo">
+        <h1>Proyectos</h1>
+        <div class="projects-grid">
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="imgProyectos/mindmatchProyecto.png" alt="MindMatch">
+                </div>
+                <div class="project-info">
+                    <h3>MindMatch</h3>
+                    <p>MindMatch es una aplicación orientada al ámbito de la salud mental que permite a los usuarios ingresar síntomas psicológicos basados en el DSM-V. A partir de esta información, la plataforma analiza los datos y presenta posibles cuadros clínicos compatibles, con el objetivo de orientar y apoyar la comprensión inicial de los síntomas, sin reemplazar la evaluación de un profesional.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link" data-bs-toggle="modal" data-bs-target="#linkUnavailableModal" onclick="return false;"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="#" class="project-link" data-bs-toggle="modal" data-bs-target="#linkUnavailableModal" onclick="return false;"><i class="fas fa-external-link-alt"></i> Demo</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="imgProyectos/Chileproyectos.png" alt="ChileProyectos">
+                </div>
+                <div class="project-info">
+                    <h3>ChileProyectos.cl</h3>
+                    <p>Participé como parte del equipo de desarrollo de ChileProyectos.cl, una plataforma digital orientada al sector de la construcción, cuyo objetivo es conectar a clientes que requieren servicios con empresas y profesionales del rubro. La plataforma permite la publicación de proyectos por parte de los clientes y la postulación de empresas o trabajadores especializados para la adjudicación de dichos trabajos.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link" data-bs-toggle="modal" data-bs-target="#linkUnavailableModal" onclick="return false;"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="#" class="project-link" data-bs-toggle="modal" data-bs-target="#linkUnavailableModal" onclick="return false;"><i class="fas fa-external-link-alt"></i> Demo</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="imgProyectos/enconstruccion.png" alt="Proyecto Pendiente">
+                </div>
+                <div class="project-info">
+                    <h3>Proyecto Pendiente</h3>
+                    <p>Pendiente.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="#" class="project-link"><i class="fas fa-external-link-alt"></i> Demo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="imgProyectos/enconstruccion.png" alt="Proyecto Pendiente">
+                </div>
+                <div class="project-info">
+                    <h3>Proyecto Pendiente</h3>
+                    <p>Pendiente.</p>
+                    <div class="project-links">
+                        <a href="#" class="project-link"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="#" class="project-link"><i class="fas fa-external-link-alt"></i> Demo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/bastian.enrique.876515" target="_blank" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://instagram.com/itsbasti_an" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+            <a href="https://x.com/r0ybt" target="_blank" class="social-icon"><i class="fab fa-x-twitter"></i></a>
+            <a href="https://github.com/bastideveloper1" target="_blank" class="social-icon"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/enriquebastian/" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i></a>
+        </div>
+        <p class="footer-text">© 2025 27thDeer.<br>
+        Para contactar: bastian@27thdeer.com o comunícate por DM en redes sociales.</p>
+    </footer>
+
+    <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content site-modal">
+                <div class="modal-body site-modal-body">
+                    <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo">
+                    <p class="site-modal-title" id="linkUnavailableModalLabel">Enlace no disponible</p>
+                    <p class="site-modal-text">Por el momento no está disponible el enlace.</p>
+                    <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
