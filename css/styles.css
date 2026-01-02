@@ -282,7 +282,7 @@ h1 {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    z-index: 1050 !important;
+    z-index: 9999 !important;
     display: none !important;
     overflow: hidden !important;
     outline: 0 !important;
@@ -298,8 +298,8 @@ h1 {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    z-index: 1040 !important;
-    background-color: rgba(0, 0, 0, 0.8) !important; /* Fondo más oscuro */
+    z-index: 9998 !important;
+    background-color: rgba(0, 0, 0, 0.9) !important; /* Fondo más oscuro */
 }
 
 .modal-dialog {
@@ -314,6 +314,7 @@ h1 {
     display: flex !important;
     align-items: center !important;
     min-height: calc(100% - 1rem) !important;
+    justify-content: center !important;
 }
 
 .modal-content {
@@ -324,7 +325,7 @@ h1 {
     pointer-events: auto !important;
     background-color: #000000 !important; /* Fondo negro puro */
     background-clip: padding-box !important;
-    border: 2px solid #FFD700 !important; /* Borde dorado */
+    border: 3px solid #FFD700 !important; /* Borde dorado más grueso */
     border-radius: 0.5rem !important;
     outline: 0 !important;
     max-width: 400px !important; /* Tamaño normal */
@@ -337,6 +338,18 @@ h1 {
 }
 
 .modal.show .modal-dialog {
+    transform: none !important;
+}
+
+/* Estilos adicionales para asegurar centrado perfecto */
+.modal.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.modal.show .modal-dialog {
+    margin: 0 auto !important;
     transform: none !important;
 }
 
