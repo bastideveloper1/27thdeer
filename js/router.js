@@ -140,14 +140,14 @@
                     // Agregar modal si estamos en proyectos
                     if (window.location.pathname.includes('proyectos')) {
                         const modalHTML = `
-                            <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 9999 !important; display: none !important;">
-                                <div class="modal-dialog modal-dialog-centered" style="position: relative !important; width: auto !important; max-width: 400px !important; margin: 1.75rem auto !important; pointer-events: none !important; display: flex !important; align-items: center !important; min-height: calc(100% - 1rem) !important; justify-content: center !important;">
-                                    <div class="modal-content site-modal" style="position: relative !important; display: flex !important; flex-direction: column !important; width: 100% !important; pointer-events: auto !important; background-color: #000000 !important; background-clip: padding-box !important; border: 3px solid #FFD700 !important; border-radius: 0.5rem !important; outline: 0 !important; max-width: 400px !important; margin: 0 auto !important;">
-                                        <div class="modal-body site-modal-body" style="padding: 2rem !important; text-align: center !important;">
-                                            <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo" style="width: 450px !important; height: auto !important; display: block !important; margin: 0 auto 2rem auto !important; max-width: 90% !important;">
-                                            <p class="site-modal-title" id="linkUnavailableModalLabel" style="margin: 0 !important; color: #ffffff !important; font-size: 1.2rem !important;">Enlace no disponible</p>
-                                            <p class="site-modal-text" style="margin: 0.75rem 0 1.5rem 0 !important; color: #cccccc !important;">Por el momento no está disponible el enlace.</p>
-                                            <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal" style="background-color: #FFD700 !important; border-color: #FFD700 !important; color: #000000 !important; padding: 0.6rem 2.5rem !important; font-weight: 700 !important;">OK</button>
+                            <div class="modal fade" id="linkUnavailableModal" tabindex="-1" aria-labelledby="linkUnavailableModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content site-modal">
+                                        <div class="modal-body site-modal-body">
+                                            <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="site-modal-logo">
+                                            <p class="site-modal-title" id="linkUnavailableModalLabel">Enlace no disponible</p>
+                                            <p class="site-modal-text">Por el momento no está disponible el enlace.</p>
+                                            <button type="button" class="btn site-modal-ok" data-bs-dismiss="modal">OK</button>
                                         </div>
                                     </div>
                                 </div>
@@ -177,23 +177,8 @@
                                             const oldBackdrop = document.querySelector('.modal-backdrop');
                                             if (oldBackdrop) oldBackdrop.remove();
                                             
-                                            // Crear backdrop manualmente con estilos inline
-                                            const backdropHTML = `<div class="modal-backdrop" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 9998 !important; background-color: rgba(0, 0, 0, 0.9) !important;"></div>`;
-                                            document.body.insertAdjacentHTML('beforeend', backdropHTML);
-                                            
-                                            // Mostrar el modal
+                                            // Mostrar el modal con Bootstrap
                                             modal.show();
-                                            
-                                            // Forzar que el modal se muestre centrado
-                                            setTimeout(() => {
-                                                const modalEl = document.getElementById('linkUnavailableModal');
-                                                if (modalEl) {
-                                                    modalEl.style.display = 'flex';
-                                                    modalEl.style.alignItems = 'center';
-                                                    modalEl.style.justifyContent = 'center';
-                                                    modalEl.classList.add('show');
-                                                }
-                                            }, 100);
                                         });
                                     });
                                 } catch (error) {
