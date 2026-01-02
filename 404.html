@@ -3,35 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>27th Deer</title>
+    <title>Página no encontrada - 27th Deer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script>
-        // Redirección para rutas limpias
-        (function() {
-            const path = window.location.pathname;
-            
-            // Mapeo de rutas a archivos HTML
-            const routes = {
-                '/acerca': 'acerca.html',
-                '/proyectos': 'proyectos.html',
-                '/contacto': 'contacto.html'
-            };
-            
-            // Si la ruta coincide, redirigir al archivo HTML
-            if (routes[path]) {
-                window.location.replace(routes[path]);
-            } else {
-                // Si no coincide, redirigir al inicio
-                window.location.replace('index.html');
-            }
-        })();
-    </script>
+    <script src="router.js"></script>
 </head>
+
 <body>
-    <div style="text-align: center; padding: 2rem; color: #B8860B;">
-        <h1>Redirigiendo...</h1>
-        <p>Si no eres redirigido automáticamente, <a href="index.html" style="color: #FFD700;">haz clic aquí</a>.</p>
-    </div>
+    <main style="text-align: center; padding: 4rem 2rem; min-height: 80vh; display: flex; flex-direction: column; justify-content: center;">
+        <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="main-logo" style="max-width: 200px; margin-bottom: 2rem;">
+        <h1 style="color: #B8860B; font-size: 3rem; margin-bottom: 1rem;">404</h1>
+        <h2 style="color: #FFD700; font-size: 1.5rem; margin-bottom: 2rem;">Página no encontrada</h2>
+        <p style="color: #888; font-size: 1.1rem; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Lo sentimos, la página que buscas no existe o ha sido movida. 
+            Por favor, regresa al inicio para continuar navegando.
+        </p>
+        <a href="/" style="
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background-color: #B8860B;
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        " onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000';" 
+           onmouseout="this.style.backgroundColor='#B8860B'; this.style.color='#000';">
+            <i class="fas fa-home"></i> Regresar al inicio
+        </a>
+    </main>
+    
+    <footer>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/bastian.enrique.876515" target="_blank" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://instagram.com/itsbasti_an" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+            <a href="https://x.com/r0ybt" target="_blank" class="social-icon"><i class="fab fa-x-twitter"></i></a>
+            <a href="https://github.com/bastideveloper1" target="_blank" class="social-icon"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/enriquebastian/" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i></a>
+        </div>
+        <p class="footer-text">© 2025 27thDeer.<br>
+        Para contactar: bastian@27thdeer.com o comunícate por DM en redes sociales.</p>
+    </footer>
 </body>
 </html>

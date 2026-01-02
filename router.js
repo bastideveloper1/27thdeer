@@ -5,14 +5,29 @@
     // Mapeo de rutas limpias a archivos HTML
     const routes = {
         '/': 'index.html',
-        '/acerca': 'acerca.html',
-        '/proyectos': 'proyectos.html',
-        '/contacto': 'contacto.html'
+        '/acerca': 'pages/acerca.html',
+        '/proyectos': 'pages/proyectos.html',
+        '/contacto': 'pages/contacto.html'
     };
     
     // Función para obtener la ruta actual
     function getCurrentPath() {
-        return window.location.pathname.replace(/\/$/, '') || '/';
+        const pathname = window.location.pathname;
+        
+        // Si estamos en pages/, extraer la ruta limpia
+        if (pathname.includes('/pages/')) {
+            const pathParts = pathname.split('/pages/');
+            if (pathParts.length > 1) {
+                const pageName = pathParts[1].replace('.html', '');
+                if (pageName === 'index') {
+                    return '/';
+                }
+                return '/' + pageName;
+            }
+        }
+        
+        // Si estamos en la raíz, usar la ruta normal
+        return pathname.replace(/\/$/, '') || '/';
     }
     
     // Función para cargar página dinámicamente
@@ -20,11 +35,15 @@
         const htmlFile = routes[path];
         if (!htmlFile) {
             // Si no hay ruta, redirigir al inicio
-            window.location.href = 'index.html';
+            window.location.href = '/';
             return;
         }
         
-        fetch(htmlFile)
+        // Determinar la ruta base para fetch
+        const basePath = window.location.pathname.includes('/pages/') ? '../' : '';
+        const fetchUrl = basePath + htmlFile;
+        
+        fetch(fetchUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Archivo no encontrado');
@@ -150,6 +169,13 @@
     // Inicialización al cargar la página
     function initialize() {
         const currentPath = getCurrentPath();
+        
+        // Si estamos en pages/, no hacer carga dinámica (ya estamos en la página correcta)
+        if (window.location.pathname.includes('/pages/')) {
+            // Solo actualizar navegación activa
+            updateActiveNav(currentPath);
+            return;
+        }
         
         // Si estamos en una ruta limpia que existe en nuestro mapa
         if (routes[currentPath]) {
