@@ -214,6 +214,48 @@ h1 {
     color: #fff;
 }
 
+/* Sección de foto del creador */
+.creator-profile {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.creator-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%; /* Contorno circular */
+    object-fit: cover; /* Mantiene proporciones */
+    border: 4px solid #FFD700; /* Borde dorado */
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.3), /* Brillo dorado sutil */
+        0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra para profundidad */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.creator-photo:hover {
+    transform: scale(1.05); /* Ligero zoom al hover */
+    box-shadow: 
+        0 0 30px rgba(255, 215, 0, 0.5), /* Brillo dorado más fuerte */
+        0 6px 12px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+}
+
+/* Responsive para la foto del creador */
+@media (max-width: 768px) {
+    .creator-photo {
+        width: 150px;
+        height: 150px;
+        border-width: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .creator-photo {
+        width: 120px;
+        height: 120px;
+        border-width: 2px;
+    }
+}
+
 .subtitle {
     font-size: 1.2rem;
     color: #ccc;
