@@ -20,11 +20,14 @@
         <a href="/proyectos">Proyectos</a>
         <span class="divider">|</span>
         <a href="/contacto">Contacto</a>
+        <span class="divider">|</span>
+        <a href="/tienda">Tienda</a>
     </nav>
     <main>
         <img src="img/whiteLogo2.png" alt="27thDeer Logo" class="main-logo">
-        <p class="welcome-text">"Esta noche había en el aire un olor a tiempo. Tomás sonrió. ¿Qué olor tenía el tiempo? El olor del polvo, los relojes, la gente. ¿Y qué sonido tenía el tiempo? Un sonido de agua en una cueva, y una voz muy triste y unas gotas sucias que caen sobre cajas vacías y un sonido de lluvia. Y aún más, ¿a qué se parecía el tiempo? A la nieve que cae calladamente en una habitación oscura, a una película muda en un cine muy viejo, a cien millones de rostros que descienden como esos globitos de Año Nuevo, que descienden y descienden en la nada. Eso era el tiempo, su sonido, su olor. Y esta noche (y Tomás sacó una mano fuera de la camioneta), esta noche casi se pudo tocar el tiempo."</p>
+        <p class="welcome-text">"Esta noche había en el aire un olor a tiempo. Tomás sonrió. ¿Qué olor tenía el tiempo? El olor del polvo, los relojes, la gente. ¿Y qué sonido tenía el tiempo? Un sonido de agua en una cueva, y una voz muy triste y unas gotas sucias que caen sobre cajas vacías y un sonido de lluvia. Y aún más, ¿a qué se parecía el tiempo? A la nieve que cae calladamente en una habitación oscura, a una película muda en un cine muy viejo, a cien millones de rostros que descienden como esos globitos de Año Nuevo, que descienden y descienden en la nada. Eso era el tiempo, su sonido, su olor. Y esta noche (y Tomás sacó una mano fuera de la camioneta), esta noche casi se podía tocar el tiempo."</p>
 <p class="quote-author">- Crónicas Marcianas, Ray Bradbury</p>
+        
     </main>
     <footer>
         <div class="social-icons">
@@ -44,43 +47,5 @@
         <div class="counter-number" id="counterNumber">10,000</div>
     </div>
     
-    <script>
-        // Simulador de contador de visitas
-        (function() {
-            let count = parseInt(localStorage.getItem('visitCount') || '10000');
-            const counterElement = document.getElementById('counterNumber');
-            
-            // Incrementar contador
-            count++;
-            localStorage.setItem('visitCount', count);
-            
-            // Actualizar display con formato
-            counterElement.textContent = count.toLocaleString();
-            
-            // Animación inicial
-            counterElement.style.opacity = '0';
-            setTimeout(() => {
-                counterElement.style.transition = 'opacity 0.5s ease';
-                counterElement.style.opacity = '1';
-            }, 100);
-            
-            // Incremento aleatorio cada 30 segundos
-            setInterval(() => {
-                if (Math.random() > 0.7) { // 30% de probabilidad
-                    count++;
-                    localStorage.setItem('visitCount', count);
-                    counterElement.textContent = count.toLocaleString();
-                    
-                    // Efecto de flash
-                    counterElement.style.color = '#FFD700';
-                    counterElement.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
-                    setTimeout(() => {
-                        counterElement.style.color = '#FFD700';
-                        counterElement.style.textShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
-                    }, 300);
-                }
-            }, 30000);
-        })();
-    </script>
 </body>
 </html>

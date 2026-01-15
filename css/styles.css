@@ -214,6 +214,92 @@ h1 {
     color: #fff;
 }
 
+/* Menú desplegable de Ejemplos */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.dropdown-toggle:hover {
+    color: #fff;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 180px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Para que el dropdown no se cierre al mover el mouse */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Evitar que se cierre al hacer hover en los items */
+.dropdown-menu:hover {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-bottom: 1px solid #333;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #FFD700;
+    color: #000;
+}
+
+.dropdown-item:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dropdown-item:last-child {
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
 /* Sección de foto del creador */
 .creator-profile {
     text-align: center;
