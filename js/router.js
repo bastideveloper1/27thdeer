@@ -279,11 +279,13 @@
     // Función para cancelar autenticación
     function cancelAuth() {
         // Eliminar modal
-        document.getElementById('authModal').remove();
+        const modal = document.getElementById('authModal');
+        if (modal) {
+            modal.remove();
+        }
         
-        // Regresar a la página anterior o inicio
-        const previousPage = document.referrer || '/';
-        window.location.href = previousPage;
+        // NO redirigir, solo cerrar el modal
+        // El usuario permanece en la página actual
     }
     
     // Función para autenticar
@@ -300,7 +302,10 @@
             localStorage.setItem('authData', JSON.stringify(authData));
             
             // Eliminar modal
-            document.getElementById('authModal').remove();
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.remove();
+            }
             
             // Cargar la página tienda
             loadPage('/tienda');
