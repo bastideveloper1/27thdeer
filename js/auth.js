@@ -1,4 +1,4 @@
-// Sistema simple de autenticación para páginas protegidas
+// Sistema simple de autenticación para páginas protegidas!
 (function() {
     'use strict';
     
