@@ -1,0 +1,185 @@
+/* CSS para Tienda - FONDO BLANCO CON NAVBAR ROJO */
+/* Diseño limpio y elegante */
+
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* FONDO BLANCO - DISEÑO LIMPIO */
+body {
+    font-family: Arial, sans-serif;
+    background: #ffffff !important;
+    color: #000000;
+    line-height: 1.6;
+}
+
+/* Navbar rojo fino - ANCHO COMPLETO */
+.subtle-nav {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+    padding: 8px 20px;
+    text-align: center;
+    border-bottom: 1px solid #a02530;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    left: 0;
+    right: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.subtle-nav a {
+    color: #ffffff !important;
+    text-decoration: none;
+    margin: 0 12px;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.subtle-nav a:hover {
+    color: #ffffff !important;
+    opacity: 1;
+    transform: translateY(-1px);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.subtle-nav a.active {
+    color: #ffffff !important;
+    font-weight: 400;
+    opacity: 1;
+    border-bottom: 1px solid #ffffff;
+    padding-bottom: 2px;
+}
+
+.subtle-nav .divider {
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin: 0 8px;
+    font-size: 12px;
+}
+
+/* Main contenido */
+main {
+    text-align: center;
+    padding: 50px 20px;
+    min-height: 70vh;
+    background: #ffffff !important;
+}
+
+.main-logo {
+    max-width: 200px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #000000;
+}
+
+/* Botón Salir de Demo - Esquina Izquierda */
+.demo-exit {
+    position: fixed;
+    top: 60px;
+    left: 20px;
+    z-index: 1001;
+}
+
+.demo-exit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%);
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.demo-exit-btn:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+    text-decoration: none;
+}
+
+.demo-exit-btn:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.demo-exit-btn i {
+    font-size: 14px;
+}
+
+/* Footer para Tienda - ROJO */
+.tienda-footer {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+    color: #ffffff !important;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #a02530;
+    margin-top: auto;
+}
+
+.tienda-footer .social-icons {
+    margin-bottom: 15px;
+}
+
+.tienda-footer .social-icon {
+    color: #ffffff !important;
+    font-size: 20px;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    opacity: 0.8;
+}
+
+.tienda-footer .social-icon:hover {
+    color: #ffffff !important;
+    opacity: 1;
+    transform: translateY(-2px);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.tienda-footer .footer-text {
+    color: #ffffff !important;
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Footer eliminado - solo para otros footers */
+footer:not(.tienda-footer) {
+    display: none !important;
+}
+
+.footer-text:not(.tienda-footer .footer-text) {
+    display: none !important;
+}
+
+.social-icons:not(.tienda-footer .social-icons) {
+    display: none !important;
+}
+
+.social-icon:not(.tienda-footer .social-icon) {
+    display: none !important;
+}

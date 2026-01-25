@@ -7,7 +7,7 @@
         '/acerca': 'pages/acerca.html',
         '/proyectos': 'pages/proyectos.html', 
         '/contacto': 'pages/contacto.html',
-        '/tienda': 'pages/tienda.html'
+        '/tienda': 'tiendaPages/tienda.html'
     };
     
     // Cargar página
@@ -25,26 +25,112 @@
         fetch(file)
             .then(res => res.text())
             .then(html => {
-                // Extraer solo el contenido main
+                // Para tienda, cargar main + agregar elementos especiales
+                if (path === '/tienda') {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    
+                    // Cargar main content
+                    const newMain = temp.querySelector('main');
+                    const currentMain = document.querySelector('main');
+                    
+                    if (newMain && currentMain) {
+                        currentMain.innerHTML = newMain.innerHTML;
+                    }
+                    
+                    // Agregar botón Salir de Demo
+                    addDemoExitButton();
+                    
+                    // Agregar footer de tienda
+                    addTiendaFooter();
+                    
+                } else {
+                    // Para otras páginas, solo cargar main
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const newMain = temp.querySelector('main');
+                    const currentMain = document.querySelector('main');
+                    
+                    if (newMain && currentMain) {
+                        currentMain.innerHTML = newMain.innerHTML;
+                    }
+                    
+                    // Remover elementos especiales de tienda
+                    removeTiendaElements();
+                }
+                
+                // Actualizar el título de la página
                 const temp = document.createElement('div');
                 temp.innerHTML = html;
-                const newMain = temp.querySelector('main');
-                const currentMain = document.querySelector('main');
+                const title = temp.querySelector('title')?.textContent || '27thDeer';
+                document.title = title;
                 
-                if (newMain && currentMain) {
-                    currentMain.innerHTML = newMain.innerHTML;
-                    
-                    // Actualizar el título de la página
-                    const title = temp.querySelector('title')?.textContent || '27thDeer';
-                    document.title = title;
-                    
-                    // Actualizar la URL en el navegador
-                    history.pushState({}, '', path);
-                    
-                    // Actualizar navbar activo
-                    updateActiveLink(path);
+                // Aplicar CSS específico para tienda
+                if (path === '/tienda') {
+                    applyTiendaStyles();
+                } else {
+                    removeTiendaStyles();
                 }
+                
+                // Actualizar la URL en el navegador
+                history.pushState({}, '', path);
+                
+                // Actualizar navbar activo
+                updateActiveLink(path);
             });
+    }
+    
+    // Agregar botón Salir de Demo
+    function addDemoExitButton() {
+        // Remover si existe
+        const existing = document.querySelector('.demo-exit');
+        if (existing) existing.remove();
+        
+        // Crear botón
+        const demoExit = document.createElement('div');
+        demoExit.className = 'demo-exit';
+        demoExit.innerHTML = `
+            <a href="/" class="demo-exit-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Salir de Demo
+            </a>
+        `;
+        document.body.appendChild(demoExit);
+    }
+    
+    // Agregar footer de tienda
+    function addTiendaFooter() {
+        // Remover si existe
+        const existing = document.querySelector('.tienda-footer');
+        if (existing) existing.remove();
+        
+        // Crear footer
+        const footer = document.createElement('footer');
+        footer.className = 'tienda-footer';
+        footer.innerHTML = `
+            <div class="social-icons">
+                <a href="https://www.facebook.com/bastian.enrique.876515" target="_blank" class="social-icon">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://instagram.com/itsbasti_an" target="_blank" class="social-icon">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://www.youtube.com/@27thdeer" target="_blank" class="social-icon">
+                    <i class="fab fa-youtube"></i>
+                </a>
+            </div>
+            <p class="footer-text">© 2025 27thDeer - Tienda Online</p>
+        `;
+        document.body.appendChild(footer);
+    }
+    
+    // Remover elementos especiales de tienda
+    function removeTiendaElements() {
+        const demoExit = document.querySelector('.demo-exit');
+        if (demoExit) demoExit.remove();
+        
+        const tiendaFooter = document.querySelector('.tienda-footer');
+        if (tiendaFooter) tiendaFooter.remove();
     }
     
     // Mostrar modal de autenticación
@@ -324,6 +410,167 @@
         const data = JSON.parse(authData);
         const now = Date.now();
         return data.expires > now;
+    }
+    
+    // Aplicar estilos específicos para tienda
+    function applyTiendaStyles() {
+        // Crear o actualizar estilos para tienda
+        let tiendaStyle = document.getElementById('tienda-dynamic-styles');
+        if (!tiendaStyle) {
+            tiendaStyle = document.createElement('style');
+            tiendaStyle.id = 'tienda-dynamic-styles';
+            document.head.appendChild(tiendaStyle);
+        }
+        
+        tiendaStyle.textContent = `
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            main {
+                background: #ffffff !important;
+            }
+            h1 {
+                color: #000000 !important;
+            }
+            /* FORZAR navbar rojo con letras blancas - ANCHO COMPLETO */
+            .subtle-nav {
+                background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+                padding: 8px 20px !important;
+                text-align: center !important;
+                border-bottom: 1px solid #a02530 !important;
+                height: 40px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 1000 !important;
+                width: 100% !important;
+                left: 0 !important;
+                right: 0 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .subtle-nav a {
+                color: #ffffff !important;
+                text-decoration: none !important;
+                margin: 0 12px !important;
+                font-size: 13px !important;
+                font-weight: 300 !important;
+                letter-spacing: 0.5px !important;
+                transition: all 0.3s ease !important;
+                opacity: 0.9 !important;
+            }
+            .subtle-nav a:hover {
+                color: #ffffff !important;
+                opacity: 1 !important;
+                transform: translateY(-1px) !important;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+            }
+            .subtle-nav a.active {
+                color: #ffffff !important;
+                font-weight: 400 !important;
+                opacity: 1 !important;
+                border-bottom: 1px solid #ffffff !important;
+                padding-bottom: 2px !important;
+            }
+            .subtle-nav .divider {
+                color: rgba(255, 255, 255, 0.6) !important;
+                margin: 0 8px !important;
+                font-size: 12px !important;
+            }
+            /* Botón Salir de Demo - Esquina Izquierda */
+            .demo-exit {
+                position: fixed !important;
+                top: 60px !important;
+                left: 20px !important;
+                z-index: 1001 !important;
+            }
+            .demo-exit-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                background: linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%) !important;
+                color: #ffffff !important;
+                text-decoration: none !important;
+                padding: 10px 16px !important;
+                border-radius: 8px !important;
+                font-size: 13px !important;
+                font-weight: 500 !important;
+                box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+                transition: all 0.3s ease !important;
+                border: 2px solid transparent !important;
+            }
+            .demo-exit-btn:hover {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+                color: #ffffff !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4) !important;
+                text-decoration: none !important;
+            }
+            .demo-exit-btn:active {
+                transform: translateY(0px) !important;
+                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+            }
+            .demo-exit-btn i {
+                font-size: 14px !important;
+            }
+            /* Footer para Tienda - ROJO */
+            .tienda-footer {
+                background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+                color: #ffffff !important;
+                padding: 20px !important;
+                text-align: center !important;
+                border-top: 1px solid #a02530 !important;
+                margin-top: auto !important;
+            }
+            .tienda-footer .social-icons {
+                margin-bottom: 15px !important;
+            }
+            .tienda-footer .social-icon {
+                color: #ffffff !important;
+                font-size: 20px !important;
+                margin: 0 15px !important;
+                text-decoration: none !important;
+                transition: all 0.3s ease !important;
+                opacity: 0.8 !important;
+            }
+            .tienda-footer .social-icon:hover {
+                color: #ffffff !important;
+                opacity: 1 !important;
+                transform: translateY(-2px) !important;
+                text-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            }
+            .tienda-footer .footer-text {
+                color: #ffffff !important;
+                font-size: 14px !important;
+                margin: 0 !important;
+                opacity: 0.9 !important;
+            }
+            /* Footer eliminado - solo para otros footers */
+            footer:not(.tienda-footer) {
+                display: none !important;
+            }
+            .footer-text:not(.tienda-footer .footer-text) {
+                display: none !important;
+            }
+            .social-icons:not(.tienda-footer .social-icons) {
+                display: none !important;
+            }
+            .social-icon:not(.tienda-footer .social-icon) {
+                display: none !important;
+            }
+        `;
+    }
+    
+    // Remover estilos específicos de tienda
+    function removeTiendaStyles() {
+        const tiendaStyle = document.getElementById('tienda-dynamic-styles');
+        if (tiendaStyle) {
+            tiendaStyle.remove();
+        }
     }
     
     // Actualizar link activo en navbar

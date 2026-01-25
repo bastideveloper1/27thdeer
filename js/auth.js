@@ -5,7 +5,7 @@
     // Configuración
     const AUTH_CONFIG = {
         password: '27thdeer2025', // Cambia esta contraseña
-        protectedPages: ['/tienda'],
+        protectedPages: ['/tienda'], // 🔒 ACTIVADO - Tienda protegida
         sessionTimeout: 30 * 60 * 1000 // 30 minutos en milisegundos
     };
     
