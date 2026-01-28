@@ -48,8 +48,12 @@
                         currentMain.innerHTML = newMain.innerHTML;
                     }
                     
-                    // Agregar header profesional de tienda
-                    addTiendaHeader();
+                    // Agregar header profesional de tienda ANTES del main
+                    if (currentMain) {
+                        document.body.insertBefore(addTiendaHeader(), currentMain);
+                    } else {
+                        document.body.appendChild(addTiendaHeader());
+                    }
                     
                     // Agregar botón Salir de Demo
                     addDemoExitButton();
@@ -161,7 +165,7 @@
                 </div>
             </div>
         `;
-        document.body.appendChild(header);
+        return header; // Devolver el elemento en lugar de agregarlo
     }
     
     // Agregar botón Salir de Demo
@@ -519,12 +523,30 @@
             body {
                 background: #ffffff !important;
                 color: #000000 !important;
+                padding-top: 0 !important;
+                margin-top: 0 !important;
             }
             main {
                 background: #ffffff !important;
+                margin-top: 0 !important;
+                padding-top: 20px !important;
+                clear: both !important;
             }
             h1 {
                 color: #000000 !important;
+            }
+            /* Asegurar orden correcto de elementos */
+            .tienda-header {
+                position: relative !important;
+                z-index: 1000 !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            main {
+                position: relative !important;
+                z-index: 999 !important;
+                display: block !important;
+                width: 100% !important;
             }
             /* Ocultar navbar principal en tienda */
             .subtle-nav:not(.tienda-header .subtle-nav) {
@@ -533,6 +555,15 @@
                 opacity: 0 !important;
                 height: 0 !important;
                 overflow: hidden !important;
+                position: absolute !important;
+                top: -9999px !important;
+                left: -9999px !important;
+            }
+            /* Ocultar contador de visitas en tienda */
+            .visit-counter {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
                 position: absolute !important;
                 top: -9999px !important;
                 left: -9999px !important;
@@ -579,7 +610,7 @@
             /* Botón Salir de Demo - Esquina Izquierda */
             .demo-exit {
                 position: fixed !important;
-                top: 60px !important;
+                top: 80px !important;    /* Bajado desde 20px */
                 left: 20px !important;
                 z-index: 1001 !important;
             }
