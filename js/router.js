@@ -30,10 +30,14 @@
                     const temp = document.createElement('div');
                     temp.innerHTML = html;
                     
-                    // Ocultar navbar principal
+                    // Ocultar navbar principal de forma más agresiva
                     const mainNav = document.querySelector('.subtle-nav');
                     if (mainNav) {
                         mainNav.style.display = 'none';
+                        mainNav.style.visibility = 'hidden';
+                        mainNav.style.opacity = '0';
+                        mainNav.style.height = '0';
+                        mainNav.style.overflow = 'hidden';
                     }
                     
                     // Cargar main content
@@ -522,24 +526,26 @@
             h1 {
                 color: #000000 !important;
             }
+            /* Ocultar navbar principal en tienda */
+            .subtle-nav:not(.tienda-header .subtle-nav) {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                top: -9999px !important;
+                left: -9999px !important;
+            }
             /* FORZAR navbar rojo con letras blancas - ANCHO COMPLETO */
-            .subtle-nav {
+            .tienda-header {
                 background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
-                padding: 8px 20px !important;
-                text-align: center !important;
-                border-bottom: 1px solid #a02530 !important;
-                height: 40px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+                padding: 15px 20px !important;
+                box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3) !important;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 1000 !important;
                 width: 100% !important;
-                left: 0 !important;
-                right: 0 !important;
-                margin: 0 !important;
                 box-sizing: border-box !important;
             }
             .subtle-nav a {
