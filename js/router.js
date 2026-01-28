@@ -30,6 +30,12 @@
                     const temp = document.createElement('div');
                     temp.innerHTML = html;
                     
+                    // Ocultar navbar principal
+                    const mainNav = document.querySelector('.subtle-nav');
+                    if (mainNav) {
+                        mainNav.style.display = 'none';
+                    }
+                    
                     // Cargar main content
                     const newMain = temp.querySelector('main');
                     const currentMain = document.querySelector('main');
@@ -37,6 +43,9 @@
                     if (newMain && currentMain) {
                         currentMain.innerHTML = newMain.innerHTML;
                     }
+                    
+                    // Agregar header profesional de tienda
+                    addTiendaHeader();
                     
                     // Agregar botón Salir de Demo
                     addDemoExitButton();
@@ -53,6 +62,12 @@
                     
                     if (newMain && currentMain) {
                         currentMain.innerHTML = newMain.innerHTML;
+                    }
+                    
+                    // Mostrar navbar principal para otras páginas
+                    const mainNav = document.querySelector('.subtle-nav');
+                    if (mainNav) {
+                        mainNav.style.display = 'flex';
                     }
                     
                     // Remover elementos especiales de tienda
@@ -78,6 +93,71 @@
                 // Actualizar navbar activo
                 updateActiveLink(path);
             });
+    }
+    
+    // Agregar header profesional de tienda
+    function addTiendaHeader() {
+        // Remover si existe
+        const existing = document.querySelector('.tienda-header');
+        if (existing) existing.remove();
+        
+        // Crear header profesional
+        const header = document.createElement('header');
+        header.className = 'tienda-header';
+        header.innerHTML = `
+            <div class="header-container">
+                <!-- Nombre de Tienda -->
+                <div class="tienda-logo">
+                    <h1>Nombre de Tienda</h1>
+                </div>
+                
+                <!-- Barra de Búsqueda -->
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar productos...">
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Categorías y Cuenta -->
+                <div class="header-actions">
+                    <!-- Menú Desplegable de Categorías -->
+                    <div class="dropdown">
+                        <button class="dropdown-btn">
+                            Categorías <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="#" class="category-item">
+                                <i class="fas fa-magic"></i> Elementos Mágicos
+                            </a>
+                            <a href="#" class="category-item">
+                                <i class="fas fa-dragon"></i> Criaturas Fantásticas
+                            </a>
+                            <a href="#" class="category-item">
+                                <i class="fas fa-hat-wizard"></i> Artefactos Antiguos
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Inicio de Sesión -->
+                    <a href="#" class="auth-link login-link">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </a>
+                    
+                    <!-- Mi Cuenta -->
+                    <a href="#" class="auth-link account-link">
+                        <i class="fas fa-user"></i> Mi Cuenta
+                    </a>
+                    
+                    <!-- Carrito de Compras -->
+                    <a href="#" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(header);
     }
     
     // Agregar botón Salir de Demo
@@ -131,6 +211,15 @@
         
         const tiendaFooter = document.querySelector('.tienda-footer');
         if (tiendaFooter) tiendaFooter.remove();
+        
+        const tiendaHeader = document.querySelector('.tienda-header');
+        if (tiendaHeader) tiendaHeader.remove();
+        
+        // Restaurar navbar principal
+        const mainNav = document.querySelector('.subtle-nav');
+        if (mainNav) {
+            mainNav.style.display = 'flex';
+        }
     }
     
     // Mostrar modal de autenticación
@@ -516,6 +605,178 @@
             }
             .demo-exit-btn i {
                 font-size: 14px !important;
+            }
+            /* Header Profesional de Tienda */
+            .tienda-header {
+                background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+                padding: 15px 20px !important;
+                box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3) !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 1000 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .header-container {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+                gap: 20px !important;
+            }
+            .tienda-logo h1 {
+                color: #ffffff !important;
+                font-size: 24px !important;
+                font-weight: 700 !important;
+                margin: 0 !important;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+                white-space: nowrap !important;
+            }
+            .search-container {
+                display: flex !important;
+                align-items: center !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+                border-radius: 25px !important;
+                padding: 8px 15px !important;
+                flex: 1 !important;
+                max-width: 400px !important;
+                backdrop-filter: blur(10px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            }
+            .search-input {
+                background: transparent !important;
+                border: none !important;
+                color: #ffffff !important;
+                font-size: 14px !important;
+                flex: 1 !important;
+                outline: none !important;
+                padding: 0 !important;
+            }
+            .search-input::placeholder {
+                color: rgba(255, 255, 255, 0.7) !important;
+            }
+            .search-btn {
+                background: transparent !important;
+                border: none !important;
+                color: #ffffff !important;
+                cursor: pointer !important;
+                padding: 5px !important;
+                border-radius: 50% !important;
+                transition: all 0.3s ease !important;
+            }
+            .search-btn:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+            }
+            .header-actions {
+                display: flex !important;
+                align-items: center !important;
+                gap: 15px !important;
+            }
+            .dropdown {
+                position: relative !important;
+            }
+            .dropdown-btn {
+                background: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                padding: 8px 15px !important;
+                border-radius: 8px !important;
+                cursor: pointer !important;
+                font-size: 14px !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                transition: all 0.3s ease !important;
+                backdrop-filter: blur(10px) !important;
+            }
+            .dropdown-btn:hover {
+                background: rgba(255, 255, 255, 0.25) !important;
+                transform: translateY(-1px) !important;
+            }
+            .dropdown-content {
+                display: none !important;
+                position: absolute !important;
+                top: 100% !important;
+                left: 0 !important;
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+                min-width: 200px !important;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+                border-radius: 8px !important;
+                margin-top: 5px !important;
+                overflow: hidden !important;
+                z-index: 1001 !important;
+            }
+            .dropdown:hover .dropdown-content {
+                display: block !important;
+            }
+            .category-item {
+                display: flex !important;
+                align-items: center !important;
+                gap: 10px !important;
+                padding: 12px 15px !important;
+                color: #333333 !important;
+                text-decoration: none !important;
+                transition: all 0.3s ease !important;
+                border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+            }
+            .category-item:last-child {
+                border-bottom: none !important;
+            }
+            .category-item:hover {
+                background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+                color: #ffffff !important;
+            }
+            .category-item i {
+                width: 20px !important;
+                text-align: center !important;
+            }
+            .auth-link {
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                color: #ffffff !important;
+                text-decoration: none !important;
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+                border-radius: 6px !important;
+                transition: all 0.3s ease !important;
+                background: rgba(255, 255, 255, 0.1) !important;
+            }
+            .auth-link:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+                transform: translateY(-1px) !important;
+                color: #ffffff !important;
+            }
+            .cart-link {
+                position: relative !important;
+                display: flex !important;
+                align-items: center !important;
+                color: #ffffff !important;
+                text-decoration: none !important;
+                font-size: 18px !important;
+                padding: 8px 12px !important;
+                border-radius: 6px !important;
+                transition: all 0.3s ease !important;
+                background: rgba(255, 255, 255, 0.1) !important;
+            }
+            .cart-link:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+                transform: translateY(-1px) !important;
+                color: #ffffff !important;
+            }
+            .cart-count {
+                position: absolute !important;
+                top: 5px !important;
+                right: 5px !important;
+                background: #ffd700 !important;
+                color: #000000 !important;
+                font-size: 10px !important;
+                font-weight: bold !important;
+                padding: 2px 5px !important;
+                border-radius: 10px !important;
+                min-width: 16px !important;
+                text-align: center !important;
             }
             /* Footer para Tienda - ROJO */
             .tienda-footer {

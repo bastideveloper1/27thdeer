@@ -11,28 +11,61 @@
 </head>
 
 <body>
+    <!-- Header Profesional de Tienda -->
+    <header class="tienda-header">
+        <div class="header-container">
+            <!-- Nombre de Tienda -->
+            <div class="tienda-logo">
+                <h1>Nombre de Tienda</h1>
+            </div>
+            
+            <!-- Barra de Búsqueda -->
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar productos...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <!-- Categorías y Cuenta -->
+            <div class="header-actions">
+                <!-- Menú Desplegable de Categorías -->
+                <div class="dropdown">
+                    <button class="dropdown-btn">
+                        Categorías <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="#" class="category-item">
+                            <i class="fas fa-magic"></i> Elementos Mágicos
+                        </a>
+                        <a href="#" class="category-item">
+                            <i class="fas fa-dragon"></i> Criaturas Fantásticas
+                        </a>
+                        <a href="#" class="category-item">
+                            <i class="fas fa-hat-wizard"></i> Artefactos Antiguos
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Inicio de Sesión -->
+                <a href="#" class="auth-link login-link">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                
+                <!-- Mi Cuenta -->
+                <a href="#" class="auth-link account-link">
+                    <i class="fas fa-user"></i> Mi Cuenta
+                </a>
+                
+                <!-- Carrito de Compras -->
+                <a href="#" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
     
-    <!-- Botón Salir de Demo - Esquina Izquierda -->
-    <div class="demo-exit">
-        <a href="/" class="demo-exit-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            Salir de Demo
-        </a>
-    </div>
-    
-    <nav class="subtle-nav">
-        <a href="/">Inicio</a>
-        <span class="divider">|</span>
-        <a href="/acerca">Acerca</a>
-        <span class="divider">|</span>
-        <a href="/proyectos">Proyectos</a>
-        <span class="divider">|</span>
-        <a href="/contacto">Contacto</a>
-        <span class="divider">|</span>
-        <a href="/tienda" class="active">Tienda</a>
-        <span class="divider">|</span>
-        <a href="#" onclick="authLogout()" style="color: #ffffff; font-weight: 300; font-size: 13px;">🚪 Cerrar Sesión</a>
-    </nav>
     <main>
         <h1>EN CONSTRUCCIÓN 1</h1>
     </main>

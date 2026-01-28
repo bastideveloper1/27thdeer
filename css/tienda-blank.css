@@ -130,6 +130,207 @@ h1 {
     font-size: 14px;
 }
 
+/* Header Profesional de Tienda */
+.tienda-header {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
+    padding: 15px 20px;
+    box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 20px;
+}
+
+/* Nombre de Tienda */
+.tienda-logo h1 {
+    color: #ffffff !important;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    white-space: nowrap;
+}
+
+/* Barra de Búsqueda */
+.search-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 25px;
+    padding: 8px 15px;
+    flex: 1;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    flex: 1;
+    outline: none;
+    padding: 0;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Acciones del Header */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Menú Desplegable de Categorías */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    min-width: 200px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    margin-top: 5px;
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    color: #333333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.category-item:last-child {
+    border-bottom: none;
+}
+
+.category-item:hover {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+}
+
+.category-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Links de Autenticación */
+.auth-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.auth-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+/* Carrito de Compras */
+.cart-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.cart-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.cart-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ffd700;
+    color: #000000;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+}
+
 /* Footer para Tienda - ROJO */
 .tienda-footer {
     background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
