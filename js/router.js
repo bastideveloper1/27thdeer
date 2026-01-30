@@ -114,9 +114,9 @@
         header.className = 'tienda-header';
         header.innerHTML = `
             <div class="header-container">
-                <!-- Nombre de Tienda -->
+                <!-- Logo de Tienda -->
                 <div class="tienda-logo">
-                    <h1>Nombre de Tienda</h1>
+                    <img src="../imgTienda/logotipotiendaWhite.png" alt="Logo Tienda" class="tienda-logo-img">
                 </div>
                 
                 <!-- Barra de Búsqueda -->
@@ -571,13 +571,17 @@
             /* FORZAR navbar rojo con letras blancas - ANCHO COMPLETO */
             .tienda-header {
                 background: linear-gradient(90deg, #dc3545 0%, #c82333 100%) !important;
-                padding: 15px 20px !important;
+                padding: 3px 20px 5px 20px !important;    /* Un poco más de padding superior */
+                height: 50px !important;         /* Aumentado desde 45px */
+                min-height: 50px !important;     /* Altura mínima */
+                max-height: 50px !important;     /* Altura máxima */
                 box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3) !important;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 1000 !important;
                 width: 100% !important;
                 box-sizing: border-box !important;
+                overflow: hidden !important;      /* Evitar que se agrande */
             }
             .subtle-nav a {
                 color: #ffffff !important;
@@ -656,11 +660,12 @@
             }
             .header-container {
                 display: flex !important;
-                align-items: center !important;
+                align-items: flex-start !important;        /* Alineado hacia arriba */
                 justify-content: space-between !important;
                 max-width: 1200px !important;
                 margin: 0 auto !important;
-                gap: 20px !important;
+                gap: 15px !important;               /* Reducido desde 20px */
+                padding-top: 0px !important;         /* Sin padding superior - pegado al borde */
             }
             .tienda-logo h1 {
                 color: #ffffff !important;
@@ -670,14 +675,25 @@
                 text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
                 white-space: nowrap !important;
             }
+            .tienda-logo-img {
+                height: 40px !important;        /* Aumentado para header de 50px */
+                max-width: 100px !important;    /* Un poco más grande */
+                object-fit: contain !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+                margin-top: 0px !important;      /* Sin margen superior */
+            }
             .search-container {
                 display: flex !important;
                 align-items: center !important;
                 background: rgba(255, 255, 255, 0.15) !important;
-                border-radius: 25px !important;
-                padding: 8px 15px !important;
+                border-radius: 12px !important;        /* Reducido para header bajo */
+                padding: 4px 12px !important;         /* Más padding horizontal */
                 flex: 1 !important;
-                max-width: 400px !important;
+                max-width: 300px !important;         /* Aumentado desde 250px */
+                height: 40px !important;              /* Aumentado para header de 50px */
+                margin-top: 0px !important;          /* Sin margen superior */
                 backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
             }
@@ -717,13 +733,15 @@
                 background: rgba(255, 255, 255, 0.15) !important;
                 color: #ffffff !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                padding: 8px 15px !important;
-                border-radius: 8px !important;
+                padding: 4px 10px !important;         /* Un poco más de padding */
+                border-radius: 3px !important;        /* Ultra fino */
                 cursor: pointer !important;
-                font-size: 14px !important;
+                font-size: 11px !important;            /* Reducido más */
                 display: flex !important;
                 align-items: center !important;
-                gap: 8px !important;
+                gap: 4px !important;                 /* Reducido gap */
+                height: 40px !important;              /* Aumentado para header de 50px */
+                margin-top: 0px !important;          /* Sin margen superior */
                 transition: all 0.3s ease !important;
                 backdrop-filter: blur(10px) !important;
             }
@@ -771,12 +789,14 @@
             .auth-link {
                 display: flex !important;
                 align-items: center !important;
-                gap: 6px !important;
+                gap: 4px !important;                 /* Reducido gap */
                 color: #ffffff !important;
                 text-decoration: none !important;
-                font-size: 14px !important;
-                padding: 8px 12px !important;
-                border-radius: 6px !important;
+                font-size: 11px !important;            /* Reducido más */
+                padding: 4px 8px !important;          /* Un poco más de padding */
+                border-radius: 3px !important;        /* Ultra fino */
+                height: 40px !important;              /* Aumentado para header de 50px */
+                margin-top: 0px !important;          /* Sin margen superior */
                 transition: all 0.3s ease !important;
                 background: rgba(255, 255, 255, 0.1) !important;
             }
@@ -791,9 +811,11 @@
                 align-items: center !important;
                 color: #ffffff !important;
                 text-decoration: none !important;
-                font-size: 18px !important;
-                padding: 8px 12px !important;
-                border-radius: 6px !important;
+                font-size: 13px !important;            /* Reducido más */
+                padding: 4px 8px !important;          /* Un poco más de padding */
+                border-radius: 3px !important;        /* Ultra fino */
+                height: 40px !important;              /* Aumentado para header de 50px */
+                margin-top: 0px !important;          /* Sin margen superior */
                 transition: all 0.3s ease !important;
                 background: rgba(255, 255, 255, 0.1) !important;
             }
