@@ -3,10 +3,8 @@
     
     // Rutas disponibles
     const routes = {
-        '/': 'index.html',
-        '/acerca': 'pages/acerca.html',
-        '/proyectos': 'pages/proyectos.html', 
-        '/contacto': 'pages/contacto.html'
+        '/': '/pages/index.html',
+        '/proyectos': '/proyectos/proyectos.html'
     };
     
     // Cargar página
@@ -14,11 +12,7 @@
         // Normalizar ruta (remover trailing slash)
         let normalizedPath = path.replace(/\/$/, '') || '/';
         
-        // Redirigir ruta obsoleta '/tienda' a la página principal
-        if (normalizedPath === '/tienda') {
-            history.replaceState({}, '', '/');
-            normalizedPath = '/';
-        }
+        // (redirecciones obsoletas eliminadas)
         
         const file = routes[normalizedPath];
         if (!file) return;
