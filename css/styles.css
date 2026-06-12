@@ -80,6 +80,36 @@ h1 {
     max-width: 600px;
 }
 
+/* Typewriter effect styles */
+.typewriter {
+    font-family: 'Courier New', Courier, monospace;
+    color: #ccc;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 720px;
+    margin: 0.5rem auto 1.2rem auto;
+    text-align: left;
+    white-space: pre-wrap;
+}
+.typewriter .author {
+    display: block;
+    margin-top: 0.75rem;
+    color: #999;
+    font-style: italic;
+}
+.type-line {
+    display: block;
+    margin: 0.2rem 0;
+}
+.type-line.active::after {
+    content: '|';
+    display: inline-block;
+    margin-left: 4px;
+    color: #9b59b6;
+    animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
 .quote-author {
     color: #888;
     font-size: 0.9rem;

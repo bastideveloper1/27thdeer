@@ -38,12 +38,60 @@
                     
                     // Actualizar navbar activo
                     updateActiveLink(normalizedPath);
+                    
+                    // Iniciar efectos específicos de la página (ej. typewriter)
+                    try { initTypewriter(); } catch (e) { /* no-op */ }
                 }
             });
     }
     
     // Exponer loadPage globalmente para que los index.html de las subcarpetas puedan usarlo
     window.loadPage = loadPage;
+
+    // Typewriter initializer: si existe elemento con id 'homeTypewriter', lo escribe por líneas
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function initTypewriter() {
+        const container = document.getElementById('homeTypewriter');
+        if (!container) return;
+
+        // Si ya fue inicializado, evitar reiniciar
+        if (container.dataset.initiated === '1') return;
+        container.dataset.initiated = '1';
+
+        const raw = Array.from(container.childNodes)
+            .filter(n => n.nodeType === Node.TEXT_NODE)
+            .map(n => n.textContent.trim())
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // separar en frases por puntuación (manteniendo el signo)
+        const sentences = raw.match(/[^.!?]+[.!?]*/g) || [raw];
+
+        container.innerHTML = '';
+        for (let s = 0; s < sentences.length; s++) {
+            const sentence = sentences[s].trim();
+            const p = document.createElement('span');
+            p.className = 'type-line';
+            container.appendChild(p);
+
+            p.classList.add('active');
+            for (let i = 1; i <= sentence.length; i++) {
+                p.textContent = sentence.slice(0, i);
+                await sleep(100 + Math.random() * 80); // más lento por carácter (160-240ms)
+            }
+            p.classList.remove('active');
+            await sleep(1500 + Math.random() * 500); // pausa entre frases (1.5-2s)
+        }
+
+        // mostrar autor si existe originalmente
+        await sleep(3000);
+        const authorSpan = document.createElement('span');
+        authorSpan.className = 'author';
+        authorSpan.textContent = container.dataset.author || '- Crónicas Marcianas, Ray Bradbury';
+        container.appendChild(authorSpan);
+    }
     
     // Mostrar modal de autenticación
     function showAuthModal() {
