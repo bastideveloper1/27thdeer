@@ -11,13 +11,16 @@
     
     // Cargar página
     function loadPage(path) {
+        // Normalizar ruta (remover trailing slash)
+        let normalizedPath = path.replace(/\/$/, '') || '/';
+        
         // Redirigir ruta obsoleta '/tienda' a la página principal
-        if (path === '/tienda') {
+        if (normalizedPath === '/tienda') {
             history.replaceState({}, '', '/');
-            path = '/';
+            normalizedPath = '/';
         }
         
-        const file = routes[path];
+        const file = routes[normalizedPath];
         if (!file) return;
         
         fetch(file)
@@ -36,14 +39,17 @@
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
                     document.title = title;
                     
-                    // Actualizar la URL en el navegador
-                    history.pushState({}, '', path);
+                    // Actualizar la URL en el navegador (sin trailing slash)
+                    history.pushState({}, '', normalizedPath);
                     
                     // Actualizar navbar activo
-                    updateActiveLink(path);
+                    updateActiveLink(normalizedPath);
                 }
             });
     }
+    
+    // Exponer loadPage globalmente para que los index.html de las subcarpetas puedan usarlo
+    window.loadPage = loadPage;
     
     // Mostrar modal de autenticación
     function showAuthModal() {

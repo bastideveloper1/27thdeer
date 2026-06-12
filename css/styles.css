@@ -310,17 +310,19 @@ h1 {
     height: 120px; /* Reducido de 200px a 120px */
     border-radius: 50%; /* Contorno circular */
     object-fit: cover; /* Mantiene proporciones */
-    border: 3px solid #FFD700; /* Borde dorado más delgado */
+    border: 3px solid #8b7ba8; /* Borde violeta grisáceo */
     box-shadow: 
-        0 0 15px rgba(255, 215, 0, 0.3), /* Brillo dorado sutil */
-        0 3px 6px rgba(0, 0, 0, 0.3); /* Sombra para profundidad */
+        0 0 20px rgba(139, 123, 168, 0.4), /* Brillo violeta */
+        0 0 15px rgba(170, 170, 170, 0.3), /* Brillo gris */
+        0 3px 6px rgba(75, 75, 75, 0.3); /* Sombra para profundidad */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .creator-photo:hover {
     transform: scale(1.05); /* Ligero zoom al hover */
     box-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.5), /* Brillo dorado más fuerte */
+        0 0 30px rgba(155, 89, 182, 0.6), /* Brillo violeta más fuerte */
+        0 0 20px rgba(200, 200, 200, 0.5), /* Brillo gris más fuerte */
         0 4px 8px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
 }
 
