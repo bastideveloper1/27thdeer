@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Online - 27th Deer</title>
+    <meta name="robots" content="noindex,nofollow">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="../js/router.js"></script>
     <script src="../js/auth.js"></script>
+    <meta http-equiv="refresh" content="0;url=/">
 </head>
 
 <body>
@@ -20,13 +22,14 @@
         <span class="divider">|</span>
         <a href="../pages/contacto.html">Contacto</a>
         <span class="divider">|</span>
-        <a href="../pages/tienda.html" class="active">Tienda</a>
+        <span class="disabled-link active" aria-disabled="true">Tienda</span>
         <span class="divider">|</span>
         <a href="#" onclick="authLogout()" style="color: #dc3545;">🚪 Cerrar Sesión</a>
     </nav>
     <main>
         <img src="../img/whiteLogo2.png" alt="27thDeer Logo" class="main-logo">
         <h1>Tienda Online</h1>
+        <div class="disabled-banner">La tienda ya no está disponible.</div>
         <p class="about-text">Esta es una página de ejemplo de Tienda Online para demostrar el funcionamiento del sitio.</p>
         <p class="about-text">Aquí podrías mostrar productos, categorías, carrito de compras y otras funcionalidades de e-commerce.</p>
         
@@ -65,4 +68,8 @@
         Para contactar: bastian@27thdeer.com o comunícate por DM en redes sociales.</p>
     </footer>
 </body>
+<script>
+    // Fallback JS redirect inmediato en caso de que el meta-refresh no aplique
+    try { window.location.replace('/'); } catch (e) { /* ignore */ }
+</script>
 </html>

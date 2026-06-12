@@ -6,17 +6,15 @@
         '/': 'index.html',
         '/acerca': 'pages/acerca.html',
         '/proyectos': 'pages/proyectos.html', 
-        '/contacto': 'pages/contacto.html',
-        '/tienda': 'pages/tienda.html'
+        '/contacto': 'pages/contacto.html'
     };
     
     // Cargar página
     function loadPage(path) {
-        // Verificar autenticación para páginas protegidas
-        if (path === '/tienda' && !checkAuth()) {
-            // Mostrar modal de autenticación
-            showAuthModal();
-            return;
+        // Redirigir ruta obsoleta '/tienda' a la página principal
+        if (path === '/tienda') {
+            history.replaceState({}, '', '/');
+            path = '/';
         }
         
         const file = routes[path];
@@ -306,9 +304,7 @@
             if (modal) {
                 modal.remove();
             }
-            
-            // Cargar la página tienda
-            loadPage('/tienda');
+            // Nota: la página "Tienda" se ha deshabilitado; no se redirige.
         } else {
             errorDiv.textContent = '❌ Contraseña incorrecta';
             document.getElementById('authPassword').value = '';

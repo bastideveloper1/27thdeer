@@ -1,15 +1,25 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #000;
+    background-color: #292929;
     color: #fff;
     font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    min-height: 100vh;
     align-items: center;
-    height: 100vh;
     text-align: center;
+}
+
+main {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 0;
+    box-sizing: border-box;
 }
 
 .subtle-nav {
@@ -28,11 +38,11 @@ body {
 }
 
 .subtle-nav a:hover {
-    color: #B8860B;
+    color: #9b59b6;
 }
 
 .subtle-nav a.active {
-    color: #B8860B;
+    color: #9b59b6;
     font-weight: bold;
 }
 
@@ -41,19 +51,11 @@ body {
     font-size: 0.8rem;
 }
 
-.main {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
-
 footer {
     padding: 2rem 0;
     text-align: center;
     width: 100%;
-    background-color: #000;
+    background-color: #292929;
 }
 
 h1 {
@@ -63,9 +65,11 @@ h1 {
 }
 
 .main-logo {
-    max-width: 500px;
+    max-width: 220px;
     height: auto;
+    margin-top: 0;
     margin-bottom: 1rem;
+    display: block;
 }
 
 .welcome-text {
@@ -103,25 +107,20 @@ h1 {
     font-size: 1.1rem;
     margin: 1rem 0;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     gap: 0.5rem;
+    line-height: 1.4;
 }
 
 .contact-info i {
-    color: #B8860B;
-    width: 20px;
-}
-
-.tech-stack {
-    text-align: center;
-    margin-top: 3rem;
-}
-
-.tech-stack h3 {
-    color: #ccc;
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9b59b6;
+    width: 24px;
+    min-width: 24px;
+    line-height: 1;
 }
 
 .tech-icons {
@@ -146,7 +145,7 @@ h1 {
 
 .tech-item i:hover {
     transform: scale(1.2);
-    color: #B8860B;
+    color: #9b59b6;
 }
 
 .tech-item span {
@@ -539,7 +538,7 @@ h1 {
         width: 100%;
     }
     
-    .main {
+    main {
         width: 100%;
         padding: 0 10px;
         box-sizing: border-box;
@@ -690,66 +689,9 @@ h1 {
 }
 
 /* Contador de visitas */
-.visit-counter {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(184, 134, 11, 0.9);
-    color: #FFD700;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    z-index: 1000;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.visit-counter:hover {
-    background: rgba(255, 215, 0, 0.95);
-    color: #000;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.visit-counter .counter-label {
-    font-size: 10px;
-    opacity: 0.8;
-    margin-bottom: 2px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.visit-counter .counter-number {
-    font-size: 14px;
-    font-weight: 900;
-    color: #FFD700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-.visit-counter:hover .counter-number {
-    color: #000;
-    text-shadow: none;
-}
-
 @media (max-width: 480px) {
     .main-logo {
         max-width: 150px;
-    }
-    
-    .visit-counter {
-        top: 10px;
-        right: 10px;
-        padding: 6px 8px;
-        font-size: 10px;
-    }
-    
-    .visit-counter .counter-number {
-        font-size: 12px;
     }
 }
     
@@ -786,19 +728,13 @@ h1 {
     font-size: 2rem;
     text-decoration: none;
     transition: transform 0.3s ease, color 0.3s ease;
-    color: #B8860B;
-}
-
+     color: #a9a9a9 !important;
+ }
+ 
 .social-icon:hover {
     transform: scale(1.2);
-    color: #FFD700;
-    filter: brightness(1.3);
-}
-
-.social-label {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #aaa;
+    color: #9b59b6 !important;
+    filter: brightness(1.1);
 }
 
 .contact {
@@ -812,4 +748,24 @@ h1 {
     font-size: 0.8rem;
     color: #666;
     line-height: 1.4;
+}
+
+/* Estilos para enlaces deshabilitados y banner de tienda deshabilitada */
+.disabled-link {
+    color: #555;
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.8;
+}
+
+.disabled-banner {
+    background: rgba(220, 53, 69, 0.08);
+    color: #ffdddd;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    padding: 0.8rem 1rem;
+    margin: 1rem auto;
+    max-width: 600px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #ffdede;
 }
