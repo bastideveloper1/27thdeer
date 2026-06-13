@@ -54,13 +54,13 @@
                     <button type="button">🩸</button>
                 </div>
             </div>
-            <button id="generateBtn" class="generate-btn">Generar</button>
+            <button id="generateBtn" type="button" class="generate-btn">Generar</button>
         </div>
 
         <!-- Buscador y resultados -->
         <div class="search-row">
             <input id="searchInput" type="search" placeholder="Buscar serie o película..." />
-            <button id="searchBtn">Buscar</button>
+            <button id="searchBtn" type="button">Buscar</button>
         </div>
 
         <div id="results" class="results"></div>
@@ -75,12 +75,12 @@
                 <h3>Nombre de la serie/película</h3>
                 <div class="output-row">
                     <textarea id="mainTaskModal" readonly></textarea>
-                    <button id="copyMain">Copiar tarea</button>
+                    <button id="copyMain" type="button">Copiar tarea</button>
                 </div>
                 <h3>episodios</h3>
                 <div class="output-row">
                     <textarea id="subtasksModal" readonly></textarea>
-                    <button id="copySubs">Copiar subtareas</button>
+                    <button id="copySubs" type="button">Copiar subtareas</button>
                 </div>
             </div>
         </div>
@@ -116,8 +116,11 @@
         let episodesList = [];
 
         // Eventos de la página
+        // Botón de búsqueda en todos los dispositivos
         searchBtn.addEventListener('click', doSearch);
+        // Capturar Enter en el teclado, incluido móvil
         searchInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') doSearch(); });
+        searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
         emojiToggle.addEventListener('click', ()=> emojiList.classList.toggle('visible'));
         emojiList.querySelectorAll('button').forEach(button => {
             button.addEventListener('click', () => {
@@ -142,6 +145,7 @@
 
         // Realiza la consulta a TMDB y muestra los resultados
         async function doSearch(){
+            // Buscar la consulta en TMDB y mostrar resultados
             const q = searchInput.value.trim();
             if(!q) return;
             resultsEl.innerHTML = '<p>Cargando resultados...</p>';
@@ -160,6 +164,7 @@
 
         // Dibuja tarjetas de resultados en cuadricula
         function displayResults(items){
+            // Renderiza los resultados en tarjetas, una sola columna en móvil
             if(!items.length){ resultsEl.innerHTML = '<p>No se encontraron resultados.</p>'; return; }
             resultsEl.innerHTML = '';
             items.forEach(it=>{
@@ -349,6 +354,7 @@
             outputModal.classList.add('visible');
         });
 
+        // Copia el contenido del textarea al portapapeles
         async function copyField(field, successMessage) {
             try {
                 await navigator.clipboard.writeText(field.value);
