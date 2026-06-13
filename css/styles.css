@@ -30,6 +30,15 @@ main {
     gap: 1rem;
 }
 
+.site-logo {
+    width: 38px;
+    height: auto;
+    border-radius: 50%;
+    border: 1px solid rgba(155,89,182,0.5);
+    padding: 4px;
+    background: rgba(255,255,255,0.05);
+}
+
 .subtle-nav a {
     color: #888;
     text-decoration: none;

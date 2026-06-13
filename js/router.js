@@ -4,7 +4,8 @@
     // Rutas disponibles
     const routes = {
         '/': '/pages/index.html',
-        '/proyectos': '/proyectos/proyectos.html'
+        '/proyectos': '/proyectos/proyectos.html',
+        '/todo_popcorn': '/pages/todo_popcorn.html'
     };
     
     // Cargar página
@@ -28,6 +29,22 @@
                 
                 if (newMain && currentMain) {
                     currentMain.innerHTML = newMain.innerHTML;
+
+                    // Ejecutar scripts incluidos en el HTML cargado (scripts inline o con src)
+                    // Al insertar HTML con innerHTML los <script> no se ejecutan, así que los clonamos y los añadimos al body.
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        try {
+                            const s = document.createElement('script');
+                            if (oldScript.src) {
+                                s.src = oldScript.src;
+                                s.async = false;
+                            } else {
+                                s.textContent = oldScript.textContent;
+                            }
+                            document.body.appendChild(s);
+                        } catch (e) { console.warn('Error ejecutando script inyectado', e); }
+                    });
                     
                     // Actualizar el título de la página
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
