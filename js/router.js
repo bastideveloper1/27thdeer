@@ -8,12 +8,23 @@
         '/todo_popcorn': '/pages/todo_popcorn.html'
     };
     
+    function normalizeRoute(path) {
+        if (!path) return '/';
+        const normalized = path.replace(/^#/, '').replace(/\/$/, '') || '/';
+        return normalized;
+    }
+
+    function getCurrentRoute() {
+        if (window.location.hash) {
+            return normalizeRoute(window.location.hash.slice(1));
+        }
+        return normalizeRoute(window.location.pathname);
+    }
+
     // Cargar página
     function loadPage(path) {
         // Normalizar ruta (remover trailing slash)
-        let normalizedPath = path.replace(/\/$/, '') || '/';
-        
-        // (redirecciones obsoletas eliminadas)
+        let normalizedPath = normalizeRoute(path);
         
         const file = routes[normalizedPath];
         if (!file) return;
@@ -50,8 +61,10 @@
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
                     document.title = title;
                     
-                    // Actualizar la URL en el navegador (sin trailing slash)
-                    history.pushState({}, '', normalizedPath);
+                    // Actualizar la URL usando hash para evitar recargar rutas físicas
+                    if (window.location.hash !== '#' + normalizedPath) {
+                        window.location.hash = normalizedPath;
+                    }
                     
                     // Actualizar navbar activo
                     updateActiveLink(normalizedPath);
@@ -64,6 +77,10 @@
     
     // Exponer loadPage globalmente para que los index.html de las subcarpetas puedan usarlo
     window.loadPage = loadPage;
+
+    window.addEventListener('hashchange', function() {
+        loadPage(getCurrentRoute());
+    });
 
     // Typewriter initializer: si existe elemento con id 'homeTypewriter', lo escribe por líneas
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -397,7 +414,7 @@
         // Agregar clase active al link correspondiente
         document.querySelectorAll('.subtle-nav a').forEach(link => {
             const href = link.getAttribute('href');
-            if (href === activePath) {
+            if (href === activePath || href === '#' + activePath) {
                 link.classList.add('active');
             }
         });
@@ -409,13 +426,19 @@
             link.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
                 
-                // Solo procesar rutas limpias (empiezan con /)
-                if (href.startsWith('/') && !href.endsWith('.html')) {
+                if (!href) return;
+                const routePath = href.startsWith('#') ? href.slice(1) : href;
+                
+                // Solo procesar rutas limpias (empiezan con / o #/)
+                if ((href.startsWith('#/') || (href.startsWith('/') && !href.endsWith('.html')))) {
                     e.preventDefault();
-                    loadPage(href);
+                    loadPage(routePath);
                 }
             });
         });
+
+        // Cargar la página inicial según el hash o la ruta actual
+        loadPage(getCurrentRoute());
     });
     
 })();

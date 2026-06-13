@@ -16,9 +16,9 @@
 
 <body>
     <nav class="subtle-nav">
-        <a href="/" class="active">Inicio</a>
+        <a href="#/" class="active">Inicio</a>
         <span class="divider">|</span>
-        <a href="/proyectos">Proyectos</a>
+        <a href="#/proyectos">Proyectos</a>
     </nav>
     <main>
         <!-- El contenido se cargará aquí vía router.js -->
@@ -38,13 +38,11 @@
         // Cargar la página correcta según la ruta
         (function() {
             document.addEventListener('DOMContentLoaded', function() {
-                const path = window.location.pathname;
-                // Normalizar la ruta (remover trailing slash)
-                const normalizedPath = path.replace(/\/$/, '') || '/';
-                
-                // Cargar la página usando router
-                if (window.loadPage) {
-                    window.loadPage(normalizedPath);
+                if (!window.loadPage) return;
+                if (window.location.hash) {
+                    window.loadPage(window.location.hash.slice(1));
+                } else {
+                    window.loadPage(window.location.pathname);
                 }
             });
         })();
