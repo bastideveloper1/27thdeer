@@ -19,6 +19,7 @@
 }
 .page-logo {
     width: 56px;
+    max-width: 56px;
     height: auto;
     display: block;
     border-radius: 16px;
@@ -369,7 +370,9 @@ textarea {
 }
 .generate-btn,
 #copyMain,
-#copySubs {
+#copySubs,
+.secondary-btn,
+.instruction-next {
     padding: 0.85rem 1rem;
     border-radius: 16px;
     border: none;
@@ -381,6 +384,108 @@ textarea {
 .generate-btn {
     width: 100%;
     margin-top: 0.5rem;
+}
+.secondary-btn {
+    background: #3b2a5a;
+    margin-top: 0.5rem;
+}
+.action-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.instruction-panel {
+    margin: 0 auto 1rem auto;
+    max-width: 960px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: #111;
+    border: 1px solid #3a215f;
+    border-radius: 20px;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+    color: #dcdcdc;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+}
+.instruction-text {
+    white-space: pre-wrap;
+    line-height: 1.55;
+    flex: 1;
+    color: #fff;
+}
+.instruction-next {
+    min-width: 56px;
+    font-size: 1.5rem;
+    background: #6d449f;
+    align-self: center;
+}
+.mode-switch {
+    margin-bottom: 1rem;
+}
+.mode-label {
+    margin: 0 0 0.6rem;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+.mode-options {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.mode-options label {
+    flex: 1 1 180px;
+    background: #1f1d2c;
+    border: 1px solid #2f264e;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    color: #ddd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.mode-options input {
+    accent-color: #b079ff;
+}
+.selected-movies {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+.movie-chip {
+    background: #12101f;
+    border: 1px solid #3b2a5a;
+    border-radius: 18px;
+    padding: 0.8rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+.movie-chip img {
+    width: 48px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+.movie-chip span {
+    color: #fff;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+.movie-chip .remove-movie {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #6f3e97;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 /* Responsive: mobile-friendly layout adjustments */
@@ -402,6 +507,12 @@ textarea {
     .option-row label,
     .emoji-control {
         width: 100%;
+    }
+    .option-row label {
+        padding: 0.65rem 0.85rem;
+    }
+    .format-select label {
+        padding: 0.75rem 0.9rem;
     }
     .emoji-control {
         flex-direction: column;

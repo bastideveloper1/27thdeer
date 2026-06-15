@@ -41,6 +41,9 @@
                 if (newMain && currentMain) {
                     currentMain.innerHTML = newMain.innerHTML;
 
+                    // Eliminar scripts inyectados anteriormente para evitar acumulación
+                    document.querySelectorAll('script[data-router-injected]').forEach(old => old.remove());
+
                     // Ejecutar scripts incluidos en el HTML cargado (scripts inline o con src)
                     // Al insertar HTML con innerHTML los <script> no se ejecutan, así que los clonamos y los añadimos al body.
                     const scripts = temp.querySelectorAll('script');
@@ -53,11 +56,13 @@
                             } else {
                                 s.textContent = oldScript.textContent;
                             }
+                            s.dataset.routerInjected = '1';
                             document.body.appendChild(s);
-                        } catch (e) { console.warn('Error ejecutando script inyectado', e); }
+                        } catch (e) {
+                            console.warn('Error ejecutando script inyectado', e);
+                        }
                     });
-                    
-                    // Actualizar el título de la página
+
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
                     document.title = title;
                     
@@ -75,8 +80,9 @@
             });
     }
     
-    // Exponer loadPage globalmente para que los index.html de las subcarpetas puedan usarlo
+    // Exponer utilidades globales para que los index.html de las subcarpetas puedan usarlas
     window.loadPage = loadPage;
+    window.getCurrentRoute = getCurrentRoute;
 
     window.addEventListener('hashchange', function() {
         loadPage(getCurrentRoute());

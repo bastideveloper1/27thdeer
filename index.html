@@ -37,8 +37,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (!window.location.hash) {
-                loadPage('/');
+                window.location.hash = '/';
+                return;
             }
+            loadPage(getCurrentRoute());
         });
     </script>
 </body>

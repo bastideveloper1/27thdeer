@@ -1,14 +1,26 @@
 <main>
-    <!-- Página ToDo Popcorn -->
-    <div class="page-header">
-        <img class="page-logo" src="/img/mini-icon.png" alt="Logo Rata" />
-        <h1>ToDo Popcorn!</h1>
-    </div>
-    <p class="welcome-text">Genera tareas y subtareas para Microsoft To Do a partir de series y películas.</p>
-    <link rel="stylesheet" href="/css/todo_popcorn.css">
+    <link rel="stylesheet" href="../css/todo_popcorn.css">
 
     <section class="todo-popcorn">
-        <!-- Opciones de salida arriba -->
+        <div class="page-header">
+            <img class="page-logo" src="../img/mini-icon.png" alt="Logo Rata" width="56" height="56" />
+            <h1>ToDo Popcorn!</h1>
+        </div>
+
+        <div id="instructionPanel" class="instruction-panel">
+            <div id="instructionText" class="instruction-text" style="color:#ddd"></div>
+            <button id="instructionNext" type="button" class="instruction-next">›</button>
+        </div>
+
+        <div class="mode-switch">
+            <p class="mode-label">Selecciona qué deseas buscar</p>
+            <div class="mode-options">
+                <label><input type="radio" name="searchMode" value="movie" checked /> Película</label>
+                <label><input type="radio" name="searchMode" value="tv" /> Serie y sus episodios</label>
+                <label><input type="radio" name="searchMode" value="multi-movies" /> Lista de varias películas</label>
+            </div>
+        </div>
+
         <div id="options" class="options options-card">
             <div class="options-header">
                 <h3>Opciones de salida</h3>
@@ -23,7 +35,7 @@
                 <label><input type="checkbox" id="optEvolvingEmoji" /> Emoji en evolución</label>
             </div>
             <div class="format-select">
-                <span>Formato:</span>
+                <span id="formatLabel">Formato:</span>
                 <label><input type="radio" name="format" value="1" checked /> Formato 1 (S01E01 - Nombre)</label>
                 <label><input type="radio" name="format" value="2" /> Formato 2 (Nombre - S01E01)</label>
             </div>
@@ -54,7 +66,10 @@
                     <button type="button">🩸</button>
                 </div>
             </div>
-            <button id="generateBtn" type="button" class="generate-btn">Generar</button>
+            <div class="action-row">
+                <button id="generateBtn" type="button" class="generate-btn">Generar</button>
+                <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ver anterior</button>
+            </div>
         </div>
 
         <!-- Buscador y resultados -->
@@ -64,6 +79,7 @@
         </div>
 
         <div id="results" class="results"></div>
+        <div id="selectedMovies" class="selected-movies" style="display:none"></div>
 
         <!-- Información de la serie/película seleccionada -->
         <div id="details" class="details" style="display:none"></div>
@@ -86,7 +102,7 @@
         </div>
     </section>
 
-    <script>
+    <script>(function() {
         // Clave y rutas de TMDB
         const API_KEY = 'df600a328fa6b72a4d012a0ef3ab14a6';
         const IMAGE_BASE = 'https://image.tmdb.org/t/p/w300';
@@ -95,6 +111,7 @@
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const resultsEl = document.getElementById('results');
+        const selectedMoviesEl = document.getElementById('selectedMovies');
         const detailsEl = document.getElementById('details');
         const optionsEl = document.getElementById('options');
         const outputModal = document.getElementById('outputModal');
@@ -106,22 +123,100 @@
         const emojiInput = document.getElementById('emojiInput');
         const emojiToggle = document.getElementById('emojiToggle');
         const emojiList = document.getElementById('emojiList');
+        const optSeasonEpisode = document.getElementById('optSeasonEpisode');
+        const optEpisodeName = document.getElementById('optEpisodeName');
+        const optAirDate = document.getElementById('optAirDate');
         const optIncludeRating = document.getElementById('optIncludeRating');
         const optTypePrefix = document.getElementById('optTypePrefix');
         const optEvolvingEmoji = document.getElementById('optEvolvingEmoji');
+        const viewPreviousBtn = document.getElementById('viewPreviousBtn');
+        const instructionText = document.getElementById('instructionText');
+        const instructionNext = document.getElementById('instructionNext');
+        const formatLabel = document.getElementById('formatLabel');
+        const modeInputs = document.querySelectorAll('input[name="searchMode"]');
 
         let selectedItem = null;
         let selectedCard = null;
         let selectedKey = null;
         let episodesList = [];
+        let selectedMovies = [];
+        let currentMode = 'movie';
+        let lastGeneratedOutput = null;
+        const instructions = [
+            'Cómo usar la aplicación\n\nEsta aplicación permite generar listas de películas, series y episodios para copiarlas y pegarlas en aplicaciones de tareas como Microsoft To Do.\n\nSelecciona qué deseas buscar:\nPelícula\nSerie y sus episodios\nLista de varias películas.',
+            '1. Configura las opciones de exportación\nInformación adicional\nIncluir Temporada/Episodio: agrega la temporada y número de episodio.\nIncluir Nombre del episodio: agrega el nombre de cada episodio cuando esté disponible.\nIncluir Fecha de emisión: agrega la fecha de estreno original de cada episodio.\nIncluir puntuación general: agrega la puntuación de TheMovieDB en el título de la serie o película.\nIncluir prefijo "Película:" o "Serie:": muestra el tipo de contenido en el título.\nOpciones visuales\nEmoji en evolución: en las series se mostrarán distintos emojis para indicar:\nInicio de temporada\nEpisodios intermedios\nFinal de temporada\nFinal de la serie\nFormato de episodios\nFormato 1 (S01E01 - Nombre)\nEjemplo:\nS01E01 - Pilot\nFormato 2 (Nombre - S01E01)\nEjemplo:\nPilot - S01E01\nEmoji o texto por episodio\nPuedes definir un emoji o texto personalizado (máximo 5 caracteres) que aparecerá al comienzo de cada episodio.\nEjemplos:\n▶ S01E01 - Pilot\n📺 S01E01 - Pilot\nVER S01E01 - Pilot',
+            '2. Busca una película o serie\nUtiliza la barra de búsqueda llamada:\n"Buscar serie o película"\n\n3. Genera la lista\nSelecciona una o varias películas o series y luego haz clic en Generar.\nLa aplicación creará:\nUn texto con el título de la serie o película.\nUna lista de episodios (cuando corresponda).\n\n4. Copia el título a Microsoft To Do\nCopia el contenido generado en la sección:\n"Nombre de la serie/película"\ny pégalo como una nueva tarea en Microsoft To Do.\n\n5. Agrega los episodios como subtareas\nSi se trata de una serie:\nCrea la tarea principal con el título de la serie.\nAbre esa tarea.\nHaz clic en la primera subtarea.\nPega el contenido generado en la sección "Episodios".\n\n6. Verifica las subtareas\nMicrosoft To Do normalmente separará automáticamente cada línea en una subtarea independiente.\n\nNota importante\nSe recomienda utilizar Microsoft To Do en su versión de escritorio.\nEn algunos dispositivos móviles, Microsoft To Do puede interpretar todas las líneas pegadas como una única tarea en lugar de separarlas automáticamente en subtareas.'
+        ];
+        let instructionIndex = 0;
+
+        function updateInstructionPanel() {
+            instructionText.textContent = instructions[instructionIndex];
+        }
+
+        function updateModeUI() {
+            const isTV = currentMode === 'tv';
+            const isMulti = currentMode === 'multi-movies';
+            optSeasonEpisode.disabled = !isTV;
+            optEpisodeName.disabled = !isTV;
+            optEvolvingEmoji.disabled = !isTV;
+            emojiInput.disabled = !isTV;
+            emojiToggle.disabled = !isTV;
+            document.querySelectorAll('input[name="format"]').forEach(input => input.disabled = !isTV);
+            formatLabel.textContent = isTV ? 'Formato:' : 'Formato: (solo para series)';
+            searchInput.placeholder = 'Buscar serie o película...';
+            selectedMoviesEl.style.display = isMulti && selectedMovies.length ? 'grid' : 'none';
+            if (!isMulti) {
+                selectedMovies = [];
+                updateSelectedMoviesPreview();
+                resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
+            }
+            detailsEl.style.display = 'none';
+            selectedItem = null;
+            selectedCard = null;
+            selectedKey = null;
+        }
+
+        function updateSelectedMoviesPreview() {
+            if (!selectedMovies.length) {
+                selectedMoviesEl.innerHTML = '';
+                selectedMoviesEl.style.display = 'none';
+                return;
+            }
+            selectedMoviesEl.style.display = 'grid';
+            selectedMoviesEl.innerHTML = selectedMovies.map(movie => {
+                const title = movie.title || movie.name || 'Sin título';
+                const imgSrc = movie.poster_path ? IMAGE_BASE + movie.poster_path : '../img/mini-icon.png';
+                return `
+                    <div class="movie-chip" data-key="${getItemKey(movie)}">
+                        <img src="${imgSrc}" alt="${title}" />
+                        <span>${title}</span>
+                        <button type="button" class="remove-movie" aria-label="Quitar película">×</button>
+                    </div>
+                `;
+            }).join('');
+            selectedMoviesEl.querySelectorAll('.remove-movie').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const chip = event.target.closest('.movie-chip');
+                    const key = chip.dataset.key;
+                    selectedMovies = selectedMovies.filter(movie => getItemKey(movie) !== key);
+                    chip.remove();
+                    resultsEl.querySelectorAll('.result-item').forEach(card => {
+                        if (card.dataset.key === key) card.classList.remove('selected');
+                    });
+                    if (!selectedMovies.length) selectedMoviesEl.style.display = 'none';
+                });
+            });
+        }
 
         // Eventos de la página
-        // Botón de búsqueda en todos los dispositivos
-        searchBtn.addEventListener('click', doSearch);
-        // Capturar Enter en el teclado, incluido móvil
-        searchInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') doSearch(); });
-        searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
-        emojiToggle.addEventListener('click', ()=> emojiList.classList.toggle('visible'));
+        searchBtn.addEventListener('click', () => {
+            console.log('Buscar clic', currentMode, searchInput.value);
+            doSearch();
+        });
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+        emojiToggle.addEventListener('click', () => emojiList.classList.toggle('visible'));
         emojiList.querySelectorAll('button').forEach(button => {
             button.addEventListener('click', () => {
                 emojiInput.value = button.textContent.trim();
@@ -142,46 +237,81 @@
         outputModal.addEventListener('click', (event) => {
             if (event.target === outputModal) outputModal.classList.remove('visible');
         });
+        instructionNext.addEventListener('click', () => {
+            instructionIndex = (instructionIndex + 1) % instructions.length;
+            updateInstructionPanel();
+        });
 
-        // Realiza la consulta a TMDB y muestra los resultados
-        async function doSearch(){
-            // Buscar la consulta en TMDB y mostrar resultados
+        modeInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                currentMode = input.value;
+                updateModeUI();
+            });
+        });
+
+        viewPreviousBtn.addEventListener('click', () => {
+            if (!lastGeneratedOutput) return alert('No hay lista anterior disponible.');
+            mainTaskModal.value = lastGeneratedOutput.main;
+            subtasksModal.value = lastGeneratedOutput.subs;
+            outputModal.classList.add('visible');
+        });
+
+        async function doSearch() {
             const q = searchInput.value.trim();
-            if(!q) return;
+            if (!q) return;
+            console.log('doSearch', { query: q, mode: currentMode });
             resultsEl.innerHTML = '<p>Cargando resultados...</p>';
-            detailsEl.style.display='none';
+            detailsEl.style.display = 'none';
             outputModal.classList.remove('visible');
 
-            const url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=es-ES&query=${encodeURIComponent(q)}&include_adult=false`;
-            const res = await fetch(url);
-            const data = await res.json();
-            displayResults(data.results || []);
+            const endpoint = currentMode === 'tv' ? 'search/tv' : 'search/movie';
+            const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${API_KEY}&language=es-ES&query=${encodeURIComponent(q)}&include_adult=false`;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
+                const data = await res.json();
+                displayResults(data.results || []);
+            } catch (error) {
+                console.error('Búsqueda fallida', error);
+                resultsEl.innerHTML = '<p>Error buscando resultados. Por favor intenta de nuevo.</p>';
+            }
         }
 
-        function getItemKey(it){
-            return `${it.media_type || 'unknown'}-${it.id}`;
+        function getItemKey(it) {
+            return `${it.media_type || (currentMode === 'tv' ? 'tv' : 'movie')}-${it.id}`;
         }
 
-        // Dibuja tarjetas de resultados en cuadricula
-        function displayResults(items){
-            // Renderiza los resultados en tarjetas, una sola columna en móvil
-            if(!items.length){ resultsEl.innerHTML = '<p>No se encontraron resultados.</p>'; return; }
+        function displayResults(items) {
+            if (!items.length) {
+                resultsEl.innerHTML = '<p>No se encontraron resultados.</p>';
+                return;
+            }
             resultsEl.innerHTML = '';
-            items.forEach(it=>{
-                if(it.media_type === 'person') return;
-                const div = document.createElement('div'); div.className='result-item';
+
+            items.forEach(it => {
+                const mediaType = it.media_type || (currentMode === 'tv' ? 'tv' : 'movie');
+                if (mediaType === 'person') return;
+
+                const div = document.createElement('div');
+                div.className = 'result-item';
                 const img = document.createElement('img');
-                img.src = it.poster_path ? (IMAGE_BASE+it.poster_path) : 'img/mini-icon.png';
+                img.src = it.poster_path ? (IMAGE_BASE + it.poster_path) : '../img/mini-icon.png';
                 div.appendChild(img);
-                const info = document.createElement('div'); info.className='result-info';
+
+                const info = document.createElement('div');
+                info.className = 'result-info';
                 const title = it.title || it.name || 'Sin título';
                 const date = it.release_date || it.first_air_date || '';
                 const rating = it.vote_average ? `⭐ ${it.vote_average.toFixed(1)}` : '';
-                info.innerHTML = `<h4>${title} ${date? '('+date.split('-')[0]+')':''}</h4><p>${(it.overview||'').slice(0,220)}</p>`;
-                const badge = document.createElement('div'); badge.className='result-badge';
-                const meta = document.createElement('p'); meta.className='result-meta';
+                info.innerHTML = `<h4>${title} ${date ? '(' + date.split('-')[0] + ')' : ''}</h4><p>${(it.overview || '').slice(0, 220)}</p>`;
+                const badge = document.createElement('div');
+                badge.className = 'result-badge';
+                const meta = document.createElement('p');
+                meta.className = 'result-meta';
                 meta.textContent = rating;
-                if (it.media_type === 'tv') {
+
+                if (mediaType === 'tv') {
+                    badge.textContent = 'Serie';
                     fetch(`https://api.themoviedb.org/3/tv/${it.id}?api_key=${API_KEY}&language=es-ES`)
                         .then(res => res.json())
                         .then(tv => {
@@ -193,7 +323,7 @@
                             }
                         })
                         .catch(() => { badge.textContent = 'Serie'; });
-                } else if (it.media_type === 'movie') {
+                } else {
                     badge.textContent = 'Película';
                     fetch(`https://api.themoviedb.org/3/movie/${it.id}?api_key=${API_KEY}&language=es-ES`)
                         .then(res => res.json())
@@ -205,22 +335,28 @@
                             }
                         })
                         .catch(() => { badge.textContent = 'Película'; });
-                } else {
-                    badge.textContent = 'Contenido';
                 }
+
                 div.appendChild(badge);
                 div.appendChild(info);
                 if (rating) info.appendChild(meta);
+                div.dataset.key = getItemKey(it);
+                if (currentMode === 'multi-movies' && selectedMovies.some(movie => getItemKey(movie) === div.dataset.key)) {
+                    div.classList.add('selected');
+                }
                 div.addEventListener('click', () => toggleSelection(it, div));
                 resultsEl.appendChild(div);
             });
         }
 
-        // Selecciona o deselecciona una tarjeta, y carga sus datos
-        async function toggleSelection(it, card){
+        async function toggleSelection(it, card) {
+            if (currentMode === 'multi-movies') {
+                toggleMovieSelection(it, card);
+                return;
+            }
+
             const key = getItemKey(it);
             const same = selectedKey === key;
-
             if (same) {
                 selectedItem = null;
                 selectedCard?.classList.remove('selected');
@@ -241,17 +377,30 @@
             await loadDetails(it);
         }
 
-        // Carga información detallada de la serie o película seleccionada
-        async function loadDetails(it){
-            detailsEl.style.display='block';
+        function toggleMovieSelection(it, card) {
+            const key = getItemKey(it);
+            const existingIndex = selectedMovies.findIndex(movie => getItemKey(movie) === key);
+            if (existingIndex >= 0) {
+                selectedMovies.splice(existingIndex, 1);
+                card.classList.remove('selected');
+            } else {
+                selectedMovies.push(it);
+                card.classList.add('selected');
+            }
+            updateSelectedMoviesPreview();
+        }
+
+        async function loadDetails(it) {
+            detailsEl.style.display = 'block';
             outputModal.classList.remove('visible');
             detailsEl.innerHTML = '<p>Cargando detalles...</p>';
+            const isMovie = currentMode === 'movie' || it.media_type === 'movie';
 
-            if(it.media_type === 'movie' || it.title && it.media_type !== 'tv'){
+            if (isMovie) {
                 const title = it.title || it.name;
                 const date = it.release_date || it.first_air_date || '';
                 const rating = it.vote_average ? `⭐ ${it.vote_average.toFixed(1)} / 10` : '';
-                detailsEl.innerHTML = `<h3>${title} ${date? '('+date.split('-')[0]+')':''}</h3><p>${it.overview||''}</p>`;
+                detailsEl.innerHTML = `<h3>${title} ${date ? '(' + date.split('-')[0] + ')' : ''}</h3><p>${it.overview || ''}</p>`;
                 if (rating) {
                     const ratingEl = document.createElement('p');
                     ratingEl.className = 'details-rating';
@@ -261,35 +410,35 @@
                 episodesList = [{ season: null, episode: null, name: title, air_date: date }];
             } else {
                 const id = it.id;
-                const url = `https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=es-ES`;
-                const res = await fetch(url);
+                const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=es-ES`);
                 const tv = await res.json();
                 const title = tv.name;
-                const year = (tv.first_air_date||'').split('-')[0] || '';
-                detailsEl.innerHTML = `<h3>${title} ${year? '('+year+')':''}</h3><p>${tv.overview||''}</p>`;
+                const year = (tv.first_air_date || '').split('-')[0] || '';
+                detailsEl.innerHTML = `<h3>${title} ${year ? '(' + year + ')' : ''}</h3><p>${tv.overview || ''}</p>`;
                 episodesList = [];
-                const seasons = (tv.seasons||[]).filter(s=>s.season_number>0);
+                const seasons = (tv.seasons || []).filter(s => s.season_number > 0);
                 const sSummary = document.createElement('div');
                 sSummary.innerHTML = `<p class="subtitle">Temporadas: ${seasons.length} · Episodios totales: ${tv.number_of_episodes || 'N/A'}</p>`;
                 detailsEl.appendChild(sSummary);
 
-                for(const s of seasons){
+                for (const s of seasons) {
                     const seasonNum = s.season_number;
-                    try{
-                        const urlS = `https://api.themoviedb.org/3/tv/${id}/season/${seasonNum}?api_key=${API_KEY}&language=es-ES`;
-                        const rs = await fetch(urlS);
+                    try {
+                        const rs = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${seasonNum}?api_key=${API_KEY}&language=es-ES`);
                         const seasonData = await rs.json();
                         const eps = seasonData.episodes || [];
-                        eps.forEach(ep=>{
+                        eps.forEach(ep => {
                             episodesList.push({ season: seasonNum, episode: ep.episode_number, name: ep.name, air_date: ep.air_date });
                         });
-                    }catch(e){ console.warn('season fetch failed', e); }
+                    } catch (e) {
+                        console.warn('season fetch failed', e);
+                    }
                 }
-                episodesList.sort((a,b)=> (a.season - b.season) || (a.episode - b.episode));
+                episodesList.sort((a, b) => (a.season - b.season) || (a.episode - b.episode));
             }
         }
 
-        function pad(n){ return n<10? '0'+n : ''+n; }
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
         function getEvolutionEmoji(index, episodes) {
             const current = episodes[index];
@@ -302,47 +451,49 @@
             return '➡️';
         }
 
-        generateBtn.addEventListener('click', ()=>{
-            if(!selectedItem) return alert('Selecciona una serie o película primero');
-            const includeSE = document.getElementById('optSeasonEpisode').checked;
-            const includeName = document.getElementById('optEpisodeName').checked;
-            const includeDate = document.getElementById('optAirDate').checked;
+        generateBtn.addEventListener('click', async () => {
+            if (currentMode === 'multi-movies') {
+                if (!selectedMovies.length) return alert('Selecciona al menos una película.');
+                generateMovieList();
+                return;
+            }
+            if (!selectedItem) return alert('Selecciona una serie o película primero');
+
+            const includeSE = optSeasonEpisode.checked;
+            const includeName = optEpisodeName.checked;
+            const includeDate = optAirDate.checked;
             const format = document.querySelector('input[name="format"]:checked').value;
             const emoji = emojiInput.value || '';
             const useEvolution = optEvolvingEmoji.checked;
-
-            // main task
             const title = selectedItem.title || selectedItem.name || selectedItem.original_name || '';
             const date = selectedItem.release_date || selectedItem.first_air_date || '';
             const prefix = optTypePrefix.checked ? (selectedItem.media_type === 'tv' ? '📺Serie: ' : '🍿Película: ') : '';
             const ratingSuffix = optIncludeRating.checked && selectedItem.vote_average ? ` ⭐${selectedItem.vote_average.toFixed(1)} / 10` : '';
-            mainTaskModal.value = `${prefix}${title}${date? ' ('+date.split('-')[0]+')':''}${ratingSuffix}`;
+            mainTaskModal.value = `${prefix}${title}${date ? ' (' + date.split('-')[0] + ')' : ''}${ratingSuffix}`;
 
-            // build subtasks
             let lines = [];
-            if(episodesList.length === 1 && episodesList[0].season == null){
-                // movie -> single line
+            if (episodesList.length === 1 && episodesList[0].season == null) {
                 let line = `${emoji}${episodesList[0].name}`.trim();
-                if(useEvolution) {
+                if (useEvolution) {
                     line = getEvolutionEmoji(0, episodesList) + ' ' + episodesList[0].name;
                 }
                 lines.push(line.trim());
             } else {
-                episodesList.forEach((ep, index)=>{
+                episodesList.forEach((ep, index) => {
                     const s = ep.season; const e = ep.episode;
                     let seCode = '';
-                    if(includeSE && s!=null){ seCode = 'S'+pad(s)+'E'+pad(e); }
+                    if (includeSE && s != null) { seCode = 'S' + pad(s) + 'E' + pad(e); }
                     const name = includeName ? ep.name : '';
                     const dateStr = includeDate && ep.air_date ? ` (${ep.air_date})` : '';
                     let line = '';
-                    if(format === '1'){
+                    if (format === '1') {
                         line = seCode + (seCode && name ? ' - ' : '') + name + dateStr;
                     } else {
                         line = name + (name && seCode ? ' - ' : '') + seCode + dateStr;
                     }
-                    if(useEvolution) {
+                    if (useEvolution) {
                         line = getEvolutionEmoji(index, episodesList) + ' ' + line;
-                    } else if(emoji) {
+                    } else if (emoji) {
                         line = emoji + ' ' + line;
                     }
                     lines.push(line.trim());
@@ -350,11 +501,38 @@
             }
 
             subtasksModal.value = lines.join('\n');
-            optionsEl.style.display='block';
             outputModal.classList.add('visible');
         });
 
-        // Copia el contenido del textarea al portapapeles
+        function generateMovieList() {
+            const prefix = optTypePrefix.checked ? '🍿Película: ' : '';
+            const includeDate = optAirDate.checked;
+            const emoji = emojiInput.value || '';
+            const includeRating = optIncludeRating.checked;
+
+            const lines = selectedMovies.map(movie => {
+                const title = movie.title || movie.name || 'Sin título';
+                const date = movie.release_date || movie.first_air_date || '';
+                const year = date ? ` (${date.split('-')[0]})` : '';
+                const rating = includeRating && movie.vote_average ? ` ⭐${movie.vote_average.toFixed(1)} / 10` : '';
+                const dateStr = includeDate && date ? ` ${date}` : '';
+                let line = `${prefix}${title}${year}${rating}`.trim();
+                if (emoji) {
+                    line = `${emoji} ${line}`.trim();
+                }
+                if (dateStr) {
+                    line += dateStr;
+                }
+                return line;
+            });
+
+            mainTaskModal.value = `Lista de películas (${selectedMovies.length})`;
+            subtasksModal.value = lines.join('\n');
+            lastGeneratedOutput = { main: mainTaskModal.value, subs: subtasksModal.value };
+            viewPreviousBtn.disabled = false;
+            outputModal.classList.add('visible');
+        }
+
         async function copyField(field, successMessage) {
             try {
                 await navigator.clipboard.writeText(field.value);
@@ -367,8 +545,27 @@
             }
         }
 
-        copyMainBtn.addEventListener('click', () => copyField(mainTaskModal, 'Tarea copiada'));
-        copySubsBtn.addEventListener('click', () => copyField(subtasksModal, 'Subtareas copiadas'));
+        async function copyAndReset(field, successMessage) {
+            await copyField(field, successMessage);
+            if (currentMode === 'multi-movies') {
+                resetMovieSelection();
+            }
+        }
 
+        copyMainBtn.addEventListener('click', () => copyAndReset(mainTaskModal, 'Tarea copiada'));
+        copySubsBtn.addEventListener('click', () => copyAndReset(subtasksModal, 'Subtareas copiadas'));
+
+        function resetMovieSelection() {
+            selectedMovies = [];
+            updateSelectedMoviesPreview();
+            resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
+            searchInput.value = '';
+            detailsEl.style.display = 'none';
+        }
+
+        updateInstructionPanel();
+        updateModeUI();
+
+    })();
     </script>
 </main>
