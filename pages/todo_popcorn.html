@@ -5,9 +5,13 @@
         <div class="page-header">
             <img class="page-logo" src="../img/mini-icon.png" alt="Logo Rata" width="56" height="56" />
             <h1>ToDo Popcorn!</h1>
+            <a href="https://www.themoviedb.org" target="_blank" rel="noopener" class="tmdb-header-link">
+                <img src="../img/tmdb-logo.svg" alt="TMDB" class="tmdb-header-logo" />
+            </a>
         </div>
 
         <div id="instructionPanel" class="instruction-panel">
+            <button id="instructionPrev" type="button" class="instruction-prev">‹</button>
             <div id="instructionText" class="instruction-text" style="color:#ddd"></div>
             <button id="instructionNext" type="button" class="instruction-next">›</button>
         </div>
@@ -15,9 +19,8 @@
         <div class="mode-switch">
             <p class="mode-label">Selecciona qué deseas buscar</p>
             <div class="mode-options">
-                <label><input type="radio" name="searchMode" value="movie" checked /> Película</label>
-                <label><input type="radio" name="searchMode" value="tv" /> Serie y sus episodios</label>
-                <label><input type="radio" name="searchMode" value="multi-movies" /> Lista de varias películas</label>
+                <label><input type="radio" name="searchMode" value="tv" /> Buscar una serie y sus episodios</label>
+                <label><input type="radio" name="searchMode" value="multi-movies" checked /> Buscar series y películas</label>
             </div>
         </div>
 
@@ -36,8 +39,8 @@
             </div>
             <div class="format-select">
                 <span id="formatLabel">Formato:</span>
-                <label><input type="radio" name="format" value="1" checked /> Formato 1 (S01E01 - Nombre)</label>
-                <label><input type="radio" name="format" value="2" /> Formato 2 (Nombre - S01E01)</label>
+                <label><input type="radio" name="format" value="1" checked /> Formato 1 (T01|E01 - Nombre)</label>
+                <label><input type="radio" name="format" value="2" /> Formato 2 (Nombre - T01|E01)</label>
             </div>
             <div class="emoji-picker">
                 <label>Emoji o texto por episodio (máx 5 caracteres)</label>
@@ -69,6 +72,7 @@
             <div class="action-row">
                 <button id="generateBtn" type="button" class="generate-btn">Generar</button>
                 <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ver anterior</button>
+                <button id="clearSearchBtn" type="button" class="secondary-btn">Limpiar búsqueda</button>
             </div>
         </div>
 
@@ -78,25 +82,31 @@
             <button id="searchBtn" type="button">Buscar</button>
         </div>
 
-        <div id="results" class="results"></div>
         <div id="selectedMovies" class="selected-movies" style="display:none"></div>
-
-        <!-- Información de la serie/película seleccionada -->
-        <div id="details" class="details" style="display:none"></div>
+        <div id="results" class="results"></div>
 
         <!-- Modal de salida con tarea y subtareas -->
         <div id="outputModal" class="output-modal">
             <div class="output-modal-card">
                 <button id="closeOutputModal" class="modal-close" type="button">×</button>
-                <h3>Nombre de la serie/película</h3>
-                <div class="output-row">
-                    <textarea id="mainTaskModal" readonly></textarea>
-                    <button id="copyMain" type="button">Copiar tarea</button>
+                <div id="mainTaskSection">
+                    <h3>Nombre de la serie/película</h3>
+                    <div class="output-row">
+                        <textarea id="mainTaskModal" readonly></textarea>
+                        <button id="copyMain" type="button">Copiar tarea</button>
+                    </div>
                 </div>
-                <h3>episodios</h3>
-                <div class="output-row">
-                    <textarea id="subtasksModal" readonly></textarea>
-                    <button id="copySubs" type="button">Copiar subtareas</button>
+                <div id="episodesSection">
+                    <h3>episodios</h3>
+                    <div class="output-row">
+                        <textarea id="subtasksModal" readonly></textarea>
+                        <button id="copySubs" type="button">Copiar subtareas</button>
+                    </div>
+                </div>
+                <div class="tmdb-credit">
+                    <a href="https://www.themoviedb.org" target="_blank" rel="noopener">
+                        <img src="../img/tmdb-logo.svg" alt="TMDB" class="tmdb-logo" />
+                    </a>
                 </div>
             </div>
         </div>
@@ -130,27 +140,46 @@
         const optTypePrefix = document.getElementById('optTypePrefix');
         const optEvolvingEmoji = document.getElementById('optEvolvingEmoji');
         const viewPreviousBtn = document.getElementById('viewPreviousBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
         const instructionText = document.getElementById('instructionText');
         const instructionNext = document.getElementById('instructionNext');
+        const instructionPrev = document.getElementById('instructionPrev');
         const formatLabel = document.getElementById('formatLabel');
         const modeInputs = document.querySelectorAll('input[name="searchMode"]');
+        const episodesSection = document.getElementById('episodesSection');
+        const mainTaskSection = document.getElementById('mainTaskSection');
 
         let selectedItem = null;
         let selectedCard = null;
         let selectedKey = null;
         let episodesList = [];
         let selectedMovies = [];
-        let currentMode = 'movie';
+        let currentMode = 'multi-movies';
         let lastGeneratedOutput = null;
         const instructions = [
-            'Cómo usar la aplicación\n\nEsta aplicación permite generar listas de películas, series y episodios para copiarlas y pegarlas en aplicaciones de tareas como Microsoft To Do.\n\nSelecciona qué deseas buscar:\nPelícula\nSerie y sus episodios\nLista de varias películas.',
-            '1. Configura las opciones de exportación\nInformación adicional\nIncluir Temporada/Episodio: agrega la temporada y número de episodio.\nIncluir Nombre del episodio: agrega el nombre de cada episodio cuando esté disponible.\nIncluir Fecha de emisión: agrega la fecha de estreno original de cada episodio.\nIncluir puntuación general: agrega la puntuación de TheMovieDB en el título de la serie o película.\nIncluir prefijo "Película:" o "Serie:": muestra el tipo de contenido en el título.\nOpciones visuales\nEmoji en evolución: en las series se mostrarán distintos emojis para indicar:\nInicio de temporada\nEpisodios intermedios\nFinal de temporada\nFinal de la serie\nFormato de episodios\nFormato 1 (S01E01 - Nombre)\nEjemplo:\nS01E01 - Pilot\nFormato 2 (Nombre - S01E01)\nEjemplo:\nPilot - S01E01\nEmoji o texto por episodio\nPuedes definir un emoji o texto personalizado (máximo 5 caracteres) que aparecerá al comienzo de cada episodio.\nEjemplos:\n▶ S01E01 - Pilot\n📺 S01E01 - Pilot\nVER S01E01 - Pilot',
-            '2. Busca una película o serie\nUtiliza la barra de búsqueda llamada:\n"Buscar serie o película"\n\n3. Genera la lista\nSelecciona una o varias películas o series y luego haz clic en Generar.\nLa aplicación creará:\nUn texto con el título de la serie o película.\nUna lista de episodios (cuando corresponda).\n\n4. Copia el título a Microsoft To Do\nCopia el contenido generado en la sección:\n"Nombre de la serie/película"\ny pégalo como una nueva tarea en Microsoft To Do.\n\n5. Agrega los episodios como subtareas\nSi se trata de una serie:\nCrea la tarea principal con el título de la serie.\nAbre esa tarea.\nHaz clic en la primera subtarea.\nPega el contenido generado en la sección "Episodios".\n\n6. Verifica las subtareas\nMicrosoft To Do normalmente separará automáticamente cada línea en una subtarea independiente.\n\nNota importante\nSe recomienda utilizar Microsoft To Do en su versión de escritorio.\nEn algunos dispositivos móviles, Microsoft To Do puede interpretar todas las líneas pegadas como una única tarea en lugar de separarlas automáticamente en subtareas.'
+            '¡Bienvenido!\n\nEsta aplicación genera listas de películas, series y episodios extraídas de la base de datos de <a href="https://www.themoviedb.org" target="_blank" class="tmdb-link">TMDB</a>, listas para copiar y pegar en Microsoft To Do y aplicaciones similares.\n\nSe recomienda el uso de la aplicación de escritorio.',
+            'Cada título de película, serie o episodio se genera en una línea distinta.\n\nAl pegar el resultado, Microsoft To Do puede crear automáticamente tareas o subtareas separadas.',
+            'Primero, escoge qué deseas generar:\n\n• Uno o varios títulos de películas y series\n• Una serie y su lista de episodios',
+            'Si escoges una lista de películas y series, copia el texto generado y pégalo en "Agregar una tarea" o "add a task".\n\nCada línea se convertirá en una tarea independiente.',
+            'Si escoges una serie y sus episodios, pega primero el nombre de la serie como tarea.\n\nLuego abre esa tarea y pega la lista de episodios en "Agregar paso" o "add step".',
+            'Ahora configura las Opciones de información.\n\nEstas opciones determinan qué datos se incluirán en la lista de películas, series y episodios.',
+            'Opciones disponibles, solo para series y sus episodios:\n\n• Temporada y episodio\n• Nombre del episodio\n• Fecha de emisión',
+            'También puedes incluir, tanto en películas como en series:\n\n• Puntuación TMDB\n• Al principio del título "Película:" o "Serie:" para identificarla',
+            'Emoji en evolución (para capítulos de serie)\n\nAñade marcadores visuales para identificar finales de temporada, además del final de la serie.',
+            'Ahora escoge el formato de los episodios.\n\nFormato 1:\nT01|E01 (temporada|nro. episodio) - Nombre del episodio\n\nFormato 2:\nNombre del episodio - T01|E01 (temporada|nro. episodio)',
+            'También puedes añadir un emoji o pequeño texto personalizado delante de cada episodio.\n\nPara texto, máximo: 5 caracteres.',
+            'Cuando termines la configuración, busca el contenido que deseas añadir.',
+            'Selecciona uno o más resultados y pulsa Generar.\n\nLa aplicación preparará el contenido para copiar.',
+            'Cuando se abra la ventana con el contenido.\n\nCopia el resultado generado y pégalo en Microsoft To Do siguiendo las instrucciones anteriores.',
+            'Verifica que cada episodio aparezca como una subtarea independiente.',
+            'Se reitera la recomendación de utilizar Microsoft To Do en escritorio.\n\nEn algunos dispositivos móviles, todas las líneas pueden pegarse como una sola tarea.'
         ];
         let instructionIndex = 0;
 
         function updateInstructionPanel() {
-            instructionText.textContent = instructions[instructionIndex];
+            const numberedText = `${instructionIndex + 1}. ${instructions[instructionIndex]}`;
+            instructionText.innerHTML = numberedText.replace(/\n/g, '<br>');
+            instructionPrev.disabled = false;
         }
 
         function updateModeUI() {
@@ -158,6 +187,7 @@
             const isMulti = currentMode === 'multi-movies';
             optSeasonEpisode.disabled = !isTV;
             optEpisodeName.disabled = !isTV;
+            optAirDate.disabled = !isTV;
             optEvolvingEmoji.disabled = !isTV;
             emojiInput.disabled = !isTV;
             emojiToggle.disabled = !isTV;
@@ -170,11 +200,46 @@
                 updateSelectedMoviesPreview();
                 resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
             }
-            detailsEl.style.display = 'none';
             selectedItem = null;
             selectedCard = null;
             selectedKey = null;
+            episodesList = [];
+
+            // Actualizar clases de disponibilidad de opciones
+            const optionLabels = document.querySelectorAll('.option-row label');
+            optionLabels.forEach(label => {
+                const input = label.querySelector('input');
+                label.classList.remove('option-available', 'option-unavailable');
+                
+                if (input.id === 'optSeasonEpisode' || input.id === 'optEpisodeName' || 
+                    input.id === 'optAirDate' || input.id === 'optEvolvingEmoji') {
+                    // Opciones solo para series
+                    if (isTV) {
+                        label.classList.add('option-available');
+                    } else {
+                        label.classList.add('option-unavailable');
+                    }
+                } else {
+                    // Opciones generales (puntuación, prefijo)
+                    label.classList.add('option-available');
+                }
+            });
+
+            // Actualizar clases de disponibilidad para formato
+            const formatLabels = document.querySelectorAll('.format-select label');
+            formatLabels.forEach(label => {
+                label.classList.remove('option-available', 'option-unavailable');
+                if (isTV) {
+                    label.classList.add('option-available');
+                } else {
+                    label.classList.add('option-unavailable');
+                }
+            });
         }
+
+        let selectedMoviesPage = 0;
+        const MOVIES_PER_PAGE = 4;
+        const MAX_MOVIES = 20;
 
         function updateSelectedMoviesPreview() {
             if (!selectedMovies.length) {
@@ -182,29 +247,61 @@
                 selectedMoviesEl.style.display = 'none';
                 return;
             }
+            
+            const limitedMovies = selectedMovies.slice(0, MAX_MOVIES);
+            const totalPages = Math.ceil(limitedMovies.length / MOVIES_PER_PAGE);
+            const startIndex = selectedMoviesPage * MOVIES_PER_PAGE;
+            const endIndex = startIndex + MOVIES_PER_PAGE;
+            const currentMovies = limitedMovies.slice(startIndex, endIndex);
+            
             selectedMoviesEl.style.display = 'grid';
-            selectedMoviesEl.innerHTML = selectedMovies.map(movie => {
+            
+            let html = currentMovies.map(movie => {
                 const title = movie.title || movie.name || 'Sin título';
                 const imgSrc = movie.poster_path ? IMAGE_BASE + movie.poster_path : '../img/mini-icon.png';
                 return `
                     <div class="movie-chip" data-key="${getItemKey(movie)}">
                         <img src="${imgSrc}" alt="${title}" />
-                        <span>${title}</span>
                         <button type="button" class="remove-movie" aria-label="Quitar película">×</button>
                     </div>
                 `;
             }).join('');
+            
+            if (totalPages > 1) {
+                html += `
+                    <div class="pagination-controls" style="grid-column: 1 / -1; display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+                        <button type="button" class="pagination-btn" ${selectedMoviesPage === 0 ? 'disabled' : ''} data-page="${selectedMoviesPage - 1}">‹ Anterior</button>
+                        <span style="align-self: center; color: #ccc;">${selectedMoviesPage + 1} / ${totalPages}</span>
+                        <button type="button" class="pagination-btn" ${selectedMoviesPage >= totalPages - 1 ? 'disabled' : ''} data-page="${selectedMoviesPage + 1}">Siguiente ›</button>
+                    </div>
+                `;
+            }
+            
+            selectedMoviesEl.innerHTML = html;
+            
             selectedMoviesEl.querySelectorAll('.remove-movie').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const chip = event.target.closest('.movie-chip');
                     const key = chip.dataset.key;
                     selectedMovies = selectedMovies.filter(movie => getItemKey(movie) !== key);
-                    chip.remove();
+                    if (selectedMoviesPage > 0 && selectedMoviesPage >= Math.ceil(selectedMovies.slice(0, MAX_MOVIES).length / MOVIES_PER_PAGE)) {
+                        selectedMoviesPage = Math.max(0, selectedMoviesPage - 1);
+                    }
+                    updateSelectedMoviesPreview();
                     resultsEl.querySelectorAll('.result-item').forEach(card => {
                         if (card.dataset.key === key) card.classList.remove('selected');
                     });
                     if (!selectedMovies.length) selectedMoviesEl.style.display = 'none';
+                });
+            });
+            
+            selectedMoviesEl.querySelectorAll('.pagination-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!button.disabled) {
+                        selectedMoviesPage = parseInt(button.dataset.page);
+                        updateSelectedMoviesPreview();
+                    }
                 });
             });
         }
@@ -242,6 +339,11 @@
             updateInstructionPanel();
         });
 
+        instructionPrev.addEventListener('click', () => {
+            instructionIndex = (instructionIndex - 1 + instructions.length) % instructions.length;
+            updateInstructionPanel();
+        });
+
         modeInputs.forEach(input => {
             input.addEventListener('change', () => {
                 currentMode = input.value;
@@ -253,7 +355,29 @@
             if (!lastGeneratedOutput) return alert('No hay lista anterior disponible.');
             mainTaskModal.value = lastGeneratedOutput.main;
             subtasksModal.value = lastGeneratedOutput.subs;
+            if (lastGeneratedOutput.hasEpisodes) {
+                mainTaskSection.style.display = 'block';
+                episodesSection.style.display = 'block';
+                episodesSection.querySelector('h3').textContent = 'episodios';
+            } else {
+                mainTaskSection.style.display = 'none';
+                episodesSection.style.display = 'block';
+                episodesSection.querySelector('h3').textContent = 'Lista de títulos';
+            }
             outputModal.classList.add('visible');
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            selectedMovies = [];
+            selectedMoviesPage = 0;
+            updateSelectedMoviesPreview();
+            resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
+            searchInput.value = '';
+            resultsEl.innerHTML = '';
+            selectedItem = null;
+            selectedCard = null;
+            selectedKey = null;
+            episodesList = [];
         });
 
         async function doSearch() {
@@ -261,11 +385,14 @@
             if (!q) return;
             console.log('doSearch', { query: q, mode: currentMode });
             resultsEl.innerHTML = '<p>Cargando resultados...</p>';
-            detailsEl.style.display = 'none';
             outputModal.classList.remove('visible');
 
-            const endpoint = currentMode === 'tv' ? 'search/tv' : 'search/movie';
-            const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${API_KEY}&language=es-ES&query=${encodeURIComponent(q)}&include_adult=false`;
+            let url;
+            if (currentMode === 'tv') {
+                url = `https://api.themoviedb.org/3/search/tv?api_key=${API_KEY}&language=es-ES&query=${encodeURIComponent(q)}&include_adult=false`;
+            } else {
+                url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=es-ES&query=${encodeURIComponent(q)}&include_adult=false`;
+            }
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
@@ -278,7 +405,7 @@
         }
 
         function getItemKey(it) {
-            return `${it.media_type || (currentMode === 'tv' ? 'tv' : 'movie')}-${it.id}`;
+            return `${it.media_type || (it.title ? 'movie' : 'tv')}-${it.id}`;
         }
 
         function displayResults(items) {
@@ -362,7 +489,6 @@
                 selectedCard?.classList.remove('selected');
                 selectedCard = null;
                 selectedKey = null;
-                detailsEl.style.display = 'none';
                 outputModal.classList.remove('visible');
                 return;
             }
@@ -391,35 +517,15 @@
         }
 
         async function loadDetails(it) {
-            detailsEl.style.display = 'block';
             outputModal.classList.remove('visible');
-            detailsEl.innerHTML = '<p>Cargando detalles...</p>';
-            const isMovie = currentMode === 'movie' || it.media_type === 'movie';
+            const isTV = it.media_type === 'tv' || (!it.title && it.name);
 
-            if (isMovie) {
-                const title = it.title || it.name;
-                const date = it.release_date || it.first_air_date || '';
-                const rating = it.vote_average ? `⭐ ${it.vote_average.toFixed(1)} / 10` : '';
-                detailsEl.innerHTML = `<h3>${title} ${date ? '(' + date.split('-')[0] + ')' : ''}</h3><p>${it.overview || ''}</p>`;
-                if (rating) {
-                    const ratingEl = document.createElement('p');
-                    ratingEl.className = 'details-rating';
-                    ratingEl.textContent = rating;
-                    detailsEl.appendChild(ratingEl);
-                }
-                episodesList = [{ season: null, episode: null, name: title, air_date: date }];
-            } else {
+            if (isTV) {
                 const id = it.id;
                 const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=es-ES`);
                 const tv = await res.json();
-                const title = tv.name;
-                const year = (tv.first_air_date || '').split('-')[0] || '';
-                detailsEl.innerHTML = `<h3>${title} ${year ? '(' + year + ')' : ''}</h3><p>${tv.overview || ''}</p>`;
                 episodesList = [];
                 const seasons = (tv.seasons || []).filter(s => s.season_number > 0);
-                const sSummary = document.createElement('div');
-                sSummary.innerHTML = `<p class="subtitle">Temporadas: ${seasons.length} · Episodios totales: ${tv.number_of_episodes || 'N/A'}</p>`;
-                detailsEl.appendChild(sSummary);
 
                 for (const s of seasons) {
                     const seasonNum = s.season_number;
@@ -435,6 +541,10 @@
                     }
                 }
                 episodesList.sort((a, b) => (a.season - b.season) || (a.episode - b.episode));
+            } else {
+                const title = it.title || it.name;
+                const date = it.release_date || it.first_air_date || '';
+                episodesList = [{ season: null, episode: null, name: title, air_date: date }];
             }
         }
 
@@ -482,7 +592,7 @@
                 episodesList.forEach((ep, index) => {
                     const s = ep.season; const e = ep.episode;
                     let seCode = '';
-                    if (includeSE && s != null) { seCode = 'S' + pad(s) + 'E' + pad(e); }
+                    if (includeSE && s != null) { seCode = 'T' + pad(s) + '|' + pad(e); }
                     const name = includeName ? ep.name : '';
                     const dateStr = includeDate && ep.air_date ? ` (${ep.air_date})` : '';
                     let line = '';
@@ -501,6 +611,10 @@
             }
 
             subtasksModal.value = lines.join('\n');
+            mainTaskSection.style.display = 'block';
+            episodesSection.style.display = 'block';
+            episodesSection.querySelector('h3').textContent = 'episodios';
+            lastGeneratedOutput = { main: mainTaskModal.value, subs: subtasksModal.value, hasEpisodes: true };
             outputModal.classList.add('visible');
         });
 
@@ -516,7 +630,9 @@
                 const year = date ? ` (${date.split('-')[0]})` : '';
                 const rating = includeRating && movie.vote_average ? ` ⭐${movie.vote_average.toFixed(1)} / 10` : '';
                 const dateStr = includeDate && date ? ` ${date}` : '';
-                let line = `${prefix}${title}${year}${rating}`.trim();
+                const isTV = movie.media_type === 'tv' || (!movie.title && movie.name);
+                const typePrefix = isTV ? '📺Serie: ' : prefix;
+                let line = `${typePrefix}${title}${year}${rating}`.trim();
                 if (emoji) {
                     line = `${emoji} ${line}`.trim();
                 }
@@ -526,9 +642,12 @@
                 return line;
             });
 
-            mainTaskModal.value = `Lista de películas (${selectedMovies.length})`;
+            mainTaskModal.value = '';
             subtasksModal.value = lines.join('\n');
-            lastGeneratedOutput = { main: mainTaskModal.value, subs: subtasksModal.value };
+            mainTaskSection.style.display = 'none';
+            episodesSection.style.display = 'block';
+            episodesSection.querySelector('h3').textContent = 'Lista de títulos';
+            lastGeneratedOutput = { main: mainTaskModal.value, subs: subtasksModal.value, hasEpisodes: false };
             viewPreviousBtn.disabled = false;
             outputModal.classList.add('visible');
         }
@@ -560,7 +679,6 @@
             updateSelectedMoviesPreview();
             resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
             searchInput.value = '';
-            detailsEl.style.display = 'none';
         }
 
         updateInstructionPanel();

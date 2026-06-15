@@ -9,8 +9,9 @@
 }
 .page-header {
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
     margin-bottom: 1rem;
 }
 .page-header h1 {
@@ -25,6 +26,17 @@
     border-radius: 16px;
     background: transparent;
     border: none;
+}
+.tmdb-header-link {
+    margin-top: 0.25rem;
+    transition: opacity 0.3s ease;
+}
+.tmdb-header-link:hover {
+    opacity: 0.8;
+}
+.tmdb-header-logo {
+    height: 28px;
+    width: auto;
 }
 
 /* Tarjeta de opciones superiores */
@@ -60,6 +72,16 @@
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+.option-row label.option-available {
+    background: #1a2f1a;
+    border-color: #2d5a2d;
+}
+.option-row label.option-unavailable {
+    background: #2f1a1a;
+    border-color: #5a2d2d;
+    opacity: 0.6;
 }
 .option-row input {
     accent-color: #b079ff;
@@ -409,6 +431,8 @@ textarea {
     color: #dcdcdc;
     font-family: 'Courier New', Courier, monospace;
     text-align: left;
+    min-height: 180px;
+    max-height: 180px;
 }
 .instruction-text {
     white-space: pre-wrap;
@@ -416,11 +440,36 @@ textarea {
     flex: 1;
     color: #fff;
 }
-.instruction-next {
+.instruction-text .tmdb-link {
+    color: #00bfff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.instruction-text .tmdb-link:hover {
+    color: #0099cc;
+    text-decoration: underline;
+}
+.instruction-next,
+.instruction-prev {
     min-width: 56px;
     font-size: 1.5rem;
     background: #6d449f;
     align-self: center;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+.instruction-next:hover,
+.instruction-prev:hover {
+    background: #8e44ad;
+}
+.instruction-prev:disabled,
+.instruction-next:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 .mode-switch {
     margin-bottom: 1rem;
@@ -461,10 +510,10 @@ textarea {
     border: 1px solid #3b2a5a;
     border-radius: 18px;
     padding: 0.8rem;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.75rem;
+    position: relative;
 }
 .movie-chip img {
     width: 48px;
@@ -472,20 +521,54 @@ textarea {
     object-fit: cover;
     border-radius: 12px;
 }
-.movie-chip span {
-    color: #fff;
-    font-size: 0.92rem;
-    line-height: 1.2;
-}
 .movie-chip .remove-movie {
-    width: 32px;
-    height: 32px;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: none;
     background: #6f3e97;
     color: #fff;
     font-weight: 700;
     cursor: pointer;
+}
+
+.tmdb-credit {
+    margin-top: 1.5rem;
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid #444;
+}
+.tmdb-credit a {
+    display: inline-block;
+    transition: opacity 0.3s ease;
+}
+.tmdb-credit a:hover {
+    opacity: 0.8;
+}
+.tmdb-logo {
+    height: 30px;
+    width: auto;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    background: #5c3597;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+}
+.pagination-btn:hover:not(:disabled) {
+    background: #8e44ad;
+}
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 /* Responsive: mobile-friendly layout adjustments */
