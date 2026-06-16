@@ -1,3 +1,5 @@
+// Actualmente fuera de la web
+
 // Contador de visitas global (simulado)
 (function() {
     // Obtener o inicializar datos del mes global

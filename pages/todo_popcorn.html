@@ -10,11 +10,7 @@
             </a>
         </div>
 
-        <div id="instructionPanel" class="instruction-panel">
-            <button id="instructionPrev" type="button" class="instruction-prev">‹</button>
-            <div id="instructionText" class="instruction-text" style="color:#ddd"></div>
-            <button id="instructionNext" type="button" class="instruction-next">›</button>
-        </div>
+        <div id="tutorialCards" class="tutorial-cards"></div>
 
         <div class="mode-switch">
             <p class="mode-label">Selecciona qué deseas buscar</p>
@@ -141,9 +137,7 @@
         const optEvolvingEmoji = document.getElementById('optEvolvingEmoji');
         const viewPreviousBtn = document.getElementById('viewPreviousBtn');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
-        const instructionText = document.getElementById('instructionText');
-        const instructionNext = document.getElementById('instructionNext');
-        const instructionPrev = document.getElementById('instructionPrev');
+        const tutorialCardsEl = document.getElementById('tutorialCards');
         const formatLabel = document.getElementById('formatLabel');
         const modeInputs = document.querySelectorAll('input[name="searchMode"]');
         const episodesSection = document.getElementById('episodesSection');
@@ -156,30 +150,44 @@
         let selectedMovies = [];
         let currentMode = 'multi-movies';
         let lastGeneratedOutput = null;
-        const instructions = [
-            '¡Bienvenido!\n\nEsta aplicación genera listas de películas, series y episodios extraídas de la base de datos de <a href="https://www.themoviedb.org" target="_blank" class="tmdb-link">TMDB</a>, listas para copiar y pegar en Microsoft To Do y aplicaciones similares.\n\nSe recomienda el uso de la aplicación de escritorio.',
-            'Cada título de película, serie o episodio se genera en una línea distinta.\n\nAl pegar el resultado, Microsoft To Do puede crear automáticamente tareas o subtareas separadas.',
-            'Primero, escoge qué deseas generar:\n\n• Uno o varios títulos de películas y series\n• Una serie y su lista de episodios',
-            'Si escoges una lista de películas y series, copia el texto generado y pégalo en "Agregar una tarea" o "add a task".\n\nCada línea se convertirá en una tarea independiente.',
-            'Si escoges una serie y sus episodios, pega primero el nombre de la serie como tarea.\n\nLuego abre esa tarea y pega la lista de episodios en "Agregar paso" o "add step".',
-            'Ahora configura las Opciones de información.\n\nEstas opciones determinan qué datos se incluirán en la lista de películas, series y episodios.',
-            'Opciones disponibles, solo para series y sus episodios:\n\n• Temporada y episodio\n• Nombre del episodio\n• Fecha de emisión',
-            'También puedes incluir, tanto en películas como en series:\n\n• Puntuación TMDB\n• Al principio del título "Película:" o "Serie:" para identificarla',
-            'Emoji en evolución (para capítulos de serie)\n\nAñade marcadores visuales para identificar finales de temporada, además del final de la serie.',
-            'Ahora escoge el formato de los episodios.\n\nFormato 1:\nT01|E01 (temporada|nro. episodio) - Nombre del episodio\n\nFormato 2:\nNombre del episodio - T01|E01 (temporada|nro. episodio)',
-            'También puedes añadir un emoji o pequeño texto personalizado delante de cada episodio.\n\nPara texto, máximo: 5 caracteres.',
+        const tutorialCards = [
+            '¡Bienvenido a ToDo Popcorn!',
+            'Usamos la base de datos de <a href="https://www.themoviedb.org/" target="_blank" class="tmdb-link">TMDB</a>',
+            'Genera listas de películas, series y episodios para copiar en Microsoft To Do similares.',
+            'Se recomienda el uso de la aplicacion de escritorio.',
+            'Cada titulo de pelicula, serie o episodio se genera en una línea distinta.',
+            'Al pegar el resultado, Microsoft To Do separa cada elemento en tareas.',
+            'Primero, escoge qué entre titulos o series y episodios',
+            'Si escoges una películas y series, pega el resultado en "add a task".',
+            'Cada línea se convertirá en una tarea independiente.',
+            'Si escoges una serie y sus episodios, pega primero el nombre de la serie como tarea.',
+            'Luego abre esa tarea y pega la lista de episodios en "add step".',
+            'Ahora configura las Opciones de información.',
+            'Determinan qué datos se incluirán en el resultado.',
+            'para episodios existen, temporada y episodio, sus nombres y fecha de emisión',
+            'para los titulos de películas y series, añade la puntuación TMDB o su prefijo',
+            'Emoji en evolución (para capitulos de serie) identifica el avance de temporadas con emojis',
+            'Ahora escoge el formato de los episodios.',
+            'Formato 1: T01|E01  - Nombre del episodio',
+            'Formato 2: Nombre del episodio - T01|E01',
+            'Puedes añadir tambien un emoji o texto delante de cada episodio.',
             'Cuando termines la configuración, busca el contenido que deseas añadir.',
-            'Selecciona uno o más resultados y pulsa Generar.\n\nLa aplicación preparará el contenido para copiar.',
-            'Cuando se abra la ventana con el contenido.\n\nCopia el resultado generado y pégalo en Microsoft To Do siguiendo las instrucciones anteriores.',
+            'Selecciona uno o más resultados y pulsa Generar.',
+            'La aplicación preparará el contenido para copiar.',
+            'Cuando se abra la ventana con el contenido copia el resultado.',
+            'Pégalo en Microsoft To Do siguiendo las instrucciones.',
             'Verifica que cada episodio aparezca como una subtarea independiente.',
-            'Se reitera la recomendación de utilizar Microsoft To Do en escritorio.\n\nEn algunos dispositivos móviles, todas las líneas pueden pegarse como una sola tarea.'
+            'Se reitera la recomendación de utilizar Microsoft To Do en escritorio.',
+            'En algunos dispositivos móviles, puede considerar varias las tareas como una'
         ];
-        let instructionIndex = 0;
 
-        function updateInstructionPanel() {
-            const numberedText = `${instructionIndex + 1}. ${instructions[instructionIndex]}`;
-            instructionText.innerHTML = numberedText.replace(/\n/g, '<br>');
-            instructionPrev.disabled = false;
+        function renderTutorialCards() {
+            tutorialCardsEl.innerHTML = tutorialCards.map((card, index) => `
+                <div class="tutorial-card">
+                    <div class="tutorial-card-number">${index + 1}</div>
+                    <div class="tutorial-card-content">${card}</div>
+                </div>
+            `).join('');
         }
 
         function updateModeUI() {
@@ -334,16 +342,6 @@
         outputModal.addEventListener('click', (event) => {
             if (event.target === outputModal) outputModal.classList.remove('visible');
         });
-        instructionNext.addEventListener('click', () => {
-            instructionIndex = (instructionIndex + 1) % instructions.length;
-            updateInstructionPanel();
-        });
-
-        instructionPrev.addEventListener('click', () => {
-            instructionIndex = (instructionIndex - 1 + instructions.length) % instructions.length;
-            updateInstructionPanel();
-        });
-
         modeInputs.forEach(input => {
             input.addEventListener('change', () => {
                 currentMode = input.value;
@@ -681,7 +679,7 @@
             searchInput.value = '';
         }
 
-        updateInstructionPanel();
+        renderTutorialCards();
         updateModeUI();
 
     })();
