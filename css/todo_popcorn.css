@@ -237,7 +237,7 @@
     display: flex;
     gap: 0.9rem;
     background: #111;
-    padding: 1rem;
+    padding: 1rem 1rem 2.75rem;
     border-radius: 20px;
     border: 2px solid transparent;
     cursor: pointer;
@@ -268,16 +268,24 @@
     margin: 0 0 0.35rem 0;
     color: #f2e8ff;
 }
-.result-info p {
+.result-info p.result-overview {
     color: #bbb;
     margin: 0;
     line-height: 1.45;
     min-height: 3.4rem;
 }
+.result-director {
+    margin: 0.45rem 0 0;
+    color: #9a8fc2;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    min-height: 1.1rem;
+}
 .result-badge {
     position: absolute;
-    top: 12px;
+    bottom: 12px;
     right: 12px;
+    top: auto;
     background: rgba(155, 89, 182, 0.95);
     color: #fff;
     font-size: 0.75rem;
@@ -501,38 +509,41 @@ textarea {
 }
 .selected-movies {
     margin-top: 1rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 .movie-chip {
     background: #12101f;
     border: 1px solid #3b2a5a;
-    border-radius: 18px;
-    padding: 0.8rem;
-    display: flex;
-    justify-content: center;
+    border-radius: 999px;
+    padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+    display: inline-flex;
     align-items: center;
-    position: relative;
+    gap: 0.35rem;
+    max-width: 100%;
 }
-.movie-chip img {
-    width: 48px;
-    height: 72px;
-    object-fit: cover;
-    border-radius: 12px;
+.movie-chip-title {
+    color: #ddd;
+    font-size: 0.82rem;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .movie-chip .remove-movie {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 24px;
-    height: 24px;
+    position: static;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: none;
     background: #6f3e97;
     color: #fff;
     font-weight: 700;
+    font-size: 0.85rem;
+    line-height: 1;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .tmdb-credit {
@@ -571,57 +582,85 @@ textarea {
     cursor: not-allowed;
 }
 
-/* Tarjetas del tutorial */
-.tutorial-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.75rem;
+/* Carrusel del tutorial */
+.tutorial-carousel {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
     margin-bottom: 1rem;
 }
-
-.tutorial-card {
+.tutorial-box {
+    flex: 1;
+    min-width: 0;
+    height: 96px;
     background: #111;
     border: 1px solid #3a215f;
     border-radius: 16px;
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 1rem 0.5rem;
     display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
 }
-
-.tutorial-card:hover {
-    border-color: #9b59b6;
-    box-shadow: 0 0 15px rgba(155, 89, 182, 0.15);
-}
-
-.tutorial-card-number {
-    background: linear-gradient(135deg, #6d449f, #8e44ad);
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.9rem;
-    min-width: 32px;
-    height: 32px;
+.tutorial-nav {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid rgba(155, 89, 182, 0.45);
     border-radius: 50%;
+    background: rgba(18, 12, 31, 0.9);
+    color: #d4c4f5;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.tutorial-nav:hover {
+    border-color: #9b59b6;
+    background: rgba(109, 68, 159, 0.35);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(155, 89, 182, 0.25);
+}
+.tutorial-nav.at-edge {
+    border-color: rgba(90, 70, 120, 0.35);
+    background: rgba(30, 24, 42, 0.85);
+    color: #6f6088;
+}
+.tutorial-nav.at-edge:hover {
+    border-color: rgba(120, 90, 150, 0.45);
+    background: rgba(59, 42, 90, 0.35);
+    color: #9a88b5;
+    box-shadow: none;
+}
+.tutorial-progress {
+    margin: 0;
+    padding-top: 0.4rem;
+    text-align: center;
+    color: #777;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
     flex-shrink: 0;
 }
-
 .tutorial-card-content {
     color: #ddd;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     line-height: 1.4;
     flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
-
 .tutorial-card-content .tmdb-link {
     color: #00bfff;
     text-decoration: none;
     transition: color 0.3s ease;
 }
-
 .tutorial-card-content .tmdb-link:hover {
     color: #0099cc;
     text-decoration: underline;
@@ -696,21 +735,5 @@ textarea {
         font-size: 1.2rem;
         padding: 0.4rem 0.8rem;
         min-width: 48px;
-    }
-    .tutorial-cards {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-    }
-    .tutorial-card {
-        padding: 0.65rem 0.85rem;
-    }
-    .tutorial-card-number {
-        min-width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
-    }
-    .tutorial-card-content {
-        font-size: 0.85rem;
-        line-height: 1.3;
     }
 }
