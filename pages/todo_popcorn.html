@@ -51,6 +51,14 @@
                 <label><input type="checkbox" id="optEvolvingEmoji" /> Emoji en inicio temporada</label>
             </div>
             <div class="format-select">
+                <span id="titleFormatLabel">Formato para título:</span>
+                <div class="title-format-toggle">
+                    <button type="button" class="title-format-btn active" data-title-format="1">Título (fecha)</button>
+                    <button type="button" class="title-format-btn" data-title-format="2">[fecha] Título</button>
+                    <button type="button" class="title-format-btn" data-title-format="3">2022 · Título</button>
+                </div>
+            </div>
+            <div class="format-select">
                 <span id="formatLabel">Formato para cada episodio:</span>
                 <div class="format-toggle">
                     <button type="button" class="format-btn active" data-format="1">T01|E01 - Nombre</button>
@@ -174,8 +182,10 @@
         const tutorialContent = document.getElementById('tutorialContent');
         const tutorialProgress = document.getElementById('tutorialProgress');
         const formatLabel = document.getElementById('formatLabel');
+        const titleFormatLabel = document.getElementById('titleFormatLabel');
         const modeBtns = document.querySelectorAll('.mode-btn');
         const formatBtns = document.querySelectorAll('.format-btn');
+        const titleFormatBtns = document.querySelectorAll('.title-format-btn');
         const episodesSection = document.getElementById('episodesSection');
         const mainTaskSection = document.getElementById('mainTaskSection');
 
@@ -422,6 +432,13 @@
         formatBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 formatBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        titleFormatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                titleFormatBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
@@ -768,14 +785,31 @@
             const includeEpisodeDirector = optIncludeEpisodeDirector.checked;
             const formatBtn = document.querySelector('.format-btn.active');
             const format = formatBtn ? formatBtn.dataset.format : '1';
+            const titleFormatBtn = document.querySelector('.title-format-btn.active');
+            const titleFormat = titleFormatBtn ? titleFormatBtn.dataset.titleFormat : '1';
             const emoji = emojiInput.value || '';
             const useEvolution = optEvolvingEmoji.checked;
             const title = selectedItem.title || selectedItem.name || selectedItem.original_name || '';
             const date = selectedItem.release_date || selectedItem.first_air_date || '';
+            const year = date ? date.split('-')[0] : '';
             const ratingSuffix = optIncludeRating.checked && selectedItem.vote_average ? ` ⭐${selectedItem.vote_average.toFixed(1)} / 10` : '';
             const directorSuffix = includeDirector && selectedItem.director ? ` | Creador: ${selectedItem.director}` : '';
             const genreSuffix = includeGenre && selectedItem.genres ? ` | ${selectedItem.genres}` : '';
-            mainTaskModal.value = `${title}${date ? ' (' + date.split('-')[0] + ')' : ''}${ratingSuffix}${directorSuffix}${genreSuffix}`;
+
+            // Aplicar formato al título según la opción seleccionada
+            let formattedTitle = '';
+            if (titleFormat === '1') {
+                // Título (fecha)
+                formattedTitle = `${title}${year ? ' (' + year + ')' : ''}`;
+            } else if (titleFormat === '2') {
+                // [fecha] Título
+                formattedTitle = `${year ? '[' + year + '] ' : ''}${title}`;
+            } else if (titleFormat === '3') {
+                // 2022 · Título
+                formattedTitle = `${year ? year + ' · ' : ''}${title}`;
+            }
+
+            mainTaskModal.value = `${formattedTitle}${ratingSuffix}${directorSuffix}${genreSuffix}`;
 
             let lines = [];
             if (episodesList.length === 1 && episodesList[0].season == null) {
@@ -839,16 +873,32 @@
             const includeRating = optIncludeRating.checked;
             const includeDirector = optIncludeDirector.checked;
             const includeGenre = optIncludeGenre.checked;
+            const titleFormatBtn = document.querySelector('.title-format-btn.active');
+            const titleFormat = titleFormatBtn ? titleFormatBtn.dataset.titleFormat : '1';
 
             const lines = selectedMovies.map(movie => {
                 const title = movie.title || movie.name || 'Sin título';
                 const date = movie.release_date || movie.first_air_date || '';
-                const year = date ? ` (${date.split('-')[0]})` : '';
+                const year = date ? date.split('-')[0] : '';
                 const rating = includeRating && movie.vote_average ? ` ⭐${movie.vote_average.toFixed(1)} / 10` : '';
                 const director = includeDirector && movie.director ? ` | Creador: ${movie.director}` : '';
                 const genre = includeGenre && movie.genres ? ` | ${movie.genres}` : '';
                 const dateStr = includeDate && date ? ` ${date}` : '';
-                let line = `${title}${year}${rating}${director}${genre}`.trim();
+
+                // Aplicar formato al título según la opción seleccionada
+                let formattedTitle = '';
+                if (titleFormat === '1') {
+                    // Título (fecha)
+                    formattedTitle = `${title}${year ? ' (' + year + ')' : ''}`;
+                } else if (titleFormat === '2') {
+                    // [fecha] Título
+                    formattedTitle = `${year ? '[' + year + '] ' : ''}${title}`;
+                } else if (titleFormat === '3') {
+                    // 2022 · Título
+                    formattedTitle = `${year ? year + ' · ' : ''}${title}`;
+                }
+
+                let line = `${formattedTitle}${rating}${director}${genre}`.trim();
                 if (emoji) {
                     line = `${emoji} ${line}`.trim();
                 }
