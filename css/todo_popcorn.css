@@ -125,6 +125,59 @@
 .format-btn:hover:not(.active) {
     background: #2a2640;
 }
+.format-btn.option-unavailable {
+    background: #2f1a1a;
+    border-color: #5a2d2d;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.format-btn.option-unavailable:hover {
+    background: #2f1a1a;
+}
+
+/* Modal personalizado para alertas */
+.alert-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+.alert-modal.visible {
+    display: flex;
+}
+.alert-modal-card {
+    background: #1c1c24;
+    border: 1px solid #2a2a32;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+.alert-modal-card p {
+    color: #bbb;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+.alert-modal-card button {
+    background: #5c3597;
+    border: 1px solid #b079ff;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+.alert-modal-card button:hover {
+    background: #6d3fa8;
+}
 
 /* Selector de emojis */
 .emoji-picker {
