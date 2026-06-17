@@ -12,22 +12,26 @@
 
         <div class="tutorial-carousel">
             <button type="button" id="tutorialPrev" class="tutorial-nav tutorial-nav-prev" aria-label="Anterior">
-                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
             </button>
             <div class="tutorial-box">
                 <div class="tutorial-card-content" id="tutorialContent"></div>
                 <p class="tutorial-progress" id="tutorialProgress" aria-live="polite"></p>
             </div>
             <button type="button" id="tutorialNext" class="tutorial-nav tutorial-nav-next" aria-label="Siguiente">
-                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
             </button>
         </div>
 
         <div class="mode-switch">
             <p class="mode-label">Selecciona qué deseas buscar</p>
-            <div class="mode-options">
-                <label><input type="radio" name="searchMode" value="tv" /> Buscar una serie y sus episodios</label>
-                <label><input type="radio" name="searchMode" value="multi-movies" checked /> Buscar series y películas</label>
+            <div class="mode-toggle">
+                <button type="button" class="mode-btn" data-mode="tv">Buscar una serie y sus episodios</button>
+                <button type="button" class="mode-btn active" data-mode="multi-movies">Buscar series y películas</button>
             </div>
         </div>
 
@@ -41,12 +45,17 @@
                 <label><input type="checkbox" id="optEpisodeName" checked /> Incluir Nombre del episodio</label>
                 <label><input type="checkbox" id="optAirDate" /> Incluir Fecha de emisión</label>
                 <label><input type="checkbox" id="optIncludeRating" /> Incluir puntuación general</label>
-                <label><input type="checkbox" id="optEvolvingEmoji" /> Emoji en evolución</label>
+                <label><input type="checkbox" id="optIncludeDirector" /> Incluir Creador</label>
+                <label><input type="checkbox" id="optIncludeGenre" /> Incluir Género</label>
+                <label><input type="checkbox" id="optIncludeEpisodeDirector" /> Incluir Director episodio</label>
+                <label><input type="checkbox" id="optEvolvingEmoji" /> Emoji en inicio temporada</label>
             </div>
             <div class="format-select">
-                <span id="formatLabel">Formato:</span>
-                <label><input type="radio" name="format" value="1" checked /> Formato 1 (T01|E01 - Nombre)</label>
-                <label><input type="radio" name="format" value="2" /> Formato 2 (Nombre - T01|E01)</label>
+                <span id="formatLabel">Formato para cada episodio:</span>
+                <div class="format-toggle">
+                    <button type="button" class="format-btn active" data-format="1">T01|E01 - Nombre</button>
+                    <button type="button" class="format-btn" data-format="2">Nombre - T01|E01</button>
+                </div>
             </div>
             <div class="emoji-picker">
                 <label>Emoji o texto por episodio (máx 5 caracteres)</label>
@@ -76,9 +85,9 @@
                 </div>
             </div>
             <div class="action-row">
-                <button id="generateBtn" type="button" class="generate-btn">Generar</button>
-                <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ver anterior</button>
+                <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ultima búsqueda</button>
                 <button id="clearSearchBtn" type="button" class="secondary-btn">Limpiar búsqueda</button>
+                <button id="generateBtn" type="button" class="generate-btn">Generar texto</button>
             </div>
         </div>
 
@@ -143,6 +152,9 @@
         const optEpisodeName = document.getElementById('optEpisodeName');
         const optAirDate = document.getElementById('optAirDate');
         const optIncludeRating = document.getElementById('optIncludeRating');
+        const optIncludeDirector = document.getElementById('optIncludeDirector');
+        const optIncludeGenre = document.getElementById('optIncludeGenre');
+        const optIncludeEpisodeDirector = document.getElementById('optIncludeEpisodeDirector');
         const optEvolvingEmoji = document.getElementById('optEvolvingEmoji');
         const viewPreviousBtn = document.getElementById('viewPreviousBtn');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -151,7 +163,8 @@
         const tutorialContent = document.getElementById('tutorialContent');
         const tutorialProgress = document.getElementById('tutorialProgress');
         const formatLabel = document.getElementById('formatLabel');
-        const modeInputs = document.querySelectorAll('input[name="searchMode"]');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const formatBtns = document.querySelectorAll('.format-btn');
         const episodesSection = document.getElementById('episodesSection');
         const mainTaskSection = document.getElementById('mainTaskSection');
 
@@ -170,7 +183,7 @@
             'Modo serie: selecciona una serie, pulsa Generar. Pega el nombre como tarea principal y los episodios en «add step» dentro de esa tarea.',
             'En «Opciones de salida» defines qué incluir: temporada/episodio, nombre del capítulo, fecha de emisión (series) o puntuación TMDB (títulos). Configura antes de buscar.',
             'Episodios: Formato 1 (T01|E01 - Nombre) o Formato 2 (Nombre - T01|E01). Opcional: emoji o texto (máx. 5 caracteres) delante de cada línea.',
-            '«Emoji en evolución» (solo series): 🚀 primer capítulo, ➡️ intermedio, 🚩 último de temporada, 🏁 último de la serie.',
+            '«Emoji en inicio temporada» (solo series): 🍿 marca el primer capítulo de cada temporada.',
             'Busca el contenido, selecciona resultados, pulsa Generar y copia el texto del modal para pegarlo en Microsoft To Do.',
             'Comprueba que cada episodio quede como subtarea aparte. Recomendamos la app de escritorio; en móvil a veces varias líneas se pegan como una sola tarea.'
         ];
@@ -199,10 +212,11 @@
             optEpisodeName.disabled = !isTV;
             optAirDate.disabled = !isTV;
             optEvolvingEmoji.disabled = !isTV;
+            optIncludeEpisodeDirector.disabled = !isTV;
             emojiInput.disabled = !isTV;
             emojiToggle.disabled = !isTV;
             document.querySelectorAll('input[name="format"]').forEach(input => input.disabled = !isTV);
-            formatLabel.textContent = isTV ? 'Formato:' : 'Formato: (solo para series)';
+            formatLabel.textContent = isTV ? 'Formato para cada episodio:' : 'Formato para cada episodio: (para series)';
             searchInput.placeholder = 'Buscar serie o película...';
             selectedMoviesEl.style.display = isMulti && selectedMovies.length ? 'flex' : 'none';
             if (!isMulti) {
@@ -212,41 +226,34 @@
             }
             selectedItem = null;
             selectedCard = null;
-            selectedKey = null;
-            episodesList = [];
 
-            // Actualizar clases de disponibilidad de opciones
-            const optionLabels = document.querySelectorAll('.option-row label');
-            optionLabels.forEach(label => {
-                const input = label.querySelector('input');
-                label.classList.remove('option-available', 'option-unavailable');
-                
-                if (input.id === 'optSeasonEpisode' || input.id === 'optEpisodeName' || 
-                    input.id === 'optAirDate' || input.id === 'optEvolvingEmoji') {
-                    // Opciones solo para series
-                    if (isTV) {
-                        label.classList.add('option-available');
-                    } else {
-                        label.classList.add('option-unavailable');
-                    }
+            // Agregar/eliminar clase option-unavailable según el modo
+            const tvOnlyOptions = [optSeasonEpisode, optEpisodeName, optAirDate, optEvolvingEmoji, optIncludeEpisodeDirector];
+            tvOnlyOptions.forEach(opt => {
+                const label = opt.parentElement;
+                if (!isTV) {
+                    label.classList.add('option-unavailable');
+                    opt.checked = false;
                 } else {
-                    label.classList.add('option-available');
+                    label.classList.remove('option-unavailable');
                 }
             });
 
-            // Actualizar clases de disponibilidad para formato
-            const formatLabels = document.querySelectorAll('.format-select label');
-            formatLabels.forEach(label => {
-                label.classList.remove('option-available', 'option-unavailable');
-                if (isTV) {
-                    label.classList.add('option-available');
+            // Formato también en modo multi-movies
+            const formatBtns = document.querySelectorAll('.format-btn');
+            formatBtns.forEach(btn => {
+                if (!isTV) {
+                    btn.classList.add('option-unavailable');
                 } else {
-                    label.classList.add('option-unavailable');
+                    btn.classList.remove('option-unavailable');
                 }
             });
         }
 
         const MAX_MOVIES = 20;
+
+        let selectedMoviesPage = 0;
+        const MOVIES_PER_PAGE = 5;
 
         function updateSelectedMoviesPreview() {
             if (!selectedMovies.length) {
@@ -255,16 +262,38 @@
                 return;
             }
 
+            const totalPages = Math.ceil(selectedMovies.length / MOVIES_PER_PAGE);
+            const startIndex = selectedMoviesPage * MOVIES_PER_PAGE;
+            const endIndex = startIndex + MOVIES_PER_PAGE;
+            const currentMovies = selectedMovies.slice(startIndex, endIndex);
+
             selectedMoviesEl.style.display = 'flex';
-            selectedMoviesEl.innerHTML = selectedMovies.slice(0, MAX_MOVIES).map(movie => {
-                const title = movie.title || movie.name || 'Sin título';
+            selectedMoviesEl.style.flexDirection = 'column';
+            selectedMoviesEl.style.alignItems = 'center';
+
+            let html = '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">';
+            html += currentMovies.map(movie => {
+                const imgSrc = movie.poster_path ? IMAGE_BASE + movie.poster_path : '../img/mini-icon.png';
                 return `
                     <div class="movie-chip" data-key="${getItemKey(movie)}">
-                        <span class="movie-chip-title">${title}</span>
+                        <img src="${imgSrc}" alt="Poster" class="movie-chip-img" />
                         <button type="button" class="remove-movie" aria-label="Quitar">×</button>
                     </div>
                 `;
             }).join('');
+            html += '</div>';
+
+            if (totalPages > 1) {
+                html += `
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem; align-items: center;">
+                        <button type="button" class="pagination-btn" ${selectedMoviesPage === 0 ? 'disabled' : ''} data-page="${selectedMoviesPage - 1}">‹</button>
+                        <span style="color: #777; font-size: 0.85rem;">${selectedMoviesPage + 1} / ${totalPages}</span>
+                        <button type="button" class="pagination-btn" ${selectedMoviesPage >= totalPages - 1 ? 'disabled' : ''} data-page="${selectedMoviesPage + 1}">›</button>
+                    </div>
+                `;
+            }
+
+            selectedMoviesEl.innerHTML = html;
 
             selectedMoviesEl.querySelectorAll('.remove-movie').forEach(button => {
                 button.addEventListener('click', (event) => {
@@ -272,10 +301,22 @@
                     const chip = event.target.closest('.movie-chip');
                     const key = chip.dataset.key;
                     selectedMovies = selectedMovies.filter(movie => getItemKey(movie) !== key);
+                    if (selectedMoviesPage > 0 && selectedMoviesPage >= Math.ceil(selectedMovies.length / MOVIES_PER_PAGE)) {
+                        selectedMoviesPage = Math.max(0, selectedMoviesPage - 1);
+                    }
                     updateSelectedMoviesPreview();
                     resultsEl.querySelectorAll('.result-item').forEach(card => {
                         if (card.dataset.key === key) card.classList.remove('selected');
                     });
+                });
+            });
+
+            selectedMoviesEl.querySelectorAll('.pagination-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!button.disabled) {
+                        selectedMoviesPage = parseInt(button.dataset.page);
+                        updateSelectedMoviesPreview();
+                    }
                 });
             });
         }
@@ -308,10 +349,19 @@
         outputModal.addEventListener('click', (event) => {
             if (event.target === outputModal) outputModal.classList.remove('visible');
         });
-        modeInputs.forEach(input => {
-            input.addEventListener('change', () => {
-                currentMode = input.value;
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentMode = btn.dataset.mode;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
                 updateModeUI();
+            });
+        });
+
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                formatBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
             });
         });
 
@@ -333,6 +383,7 @@
 
         clearSearchBtn.addEventListener('click', () => {
             selectedMovies = [];
+            selectedMoviesPage = 0;
             updateSelectedMoviesPreview();
             resultsEl.querySelectorAll('.result-item.selected').forEach(card => card.classList.remove('selected'));
             searchInput.value = '';
@@ -489,13 +540,58 @@
             await loadDetails(it);
         }
 
-        function toggleMovieSelection(it, card) {
+        async function toggleMovieSelection(it, card) {
             const key = getItemKey(it);
             const existingIndex = selectedMovies.findIndex(movie => getItemKey(movie) === key);
             if (existingIndex >= 0) {
                 selectedMovies.splice(existingIndex, 1);
                 card.classList.remove('selected');
             } else {
+                // Obtener creador antes de agregar
+                const isTV = it.media_type === 'tv' || (!it.title && it.name);
+                try {
+                    if (isTV) {
+                        const tvRes = await fetch(`https://api.themoviedb.org/3/tv/${it.id}?api_key=${API_KEY}&language=es-ES`);
+                        const tv = await tvRes.json();
+                        // Usar campo created_by de TMDB para series
+                        if (tv.created_by && tv.created_by.length > 0) {
+                            it.director = tv.created_by.map(c => c.name).join(', ');
+                        } else {
+                            // Fallback a credits/crew
+                            const creditsRes = await fetch(`https://api.themoviedb.org/3/tv/${it.id}/credits?api_key=${API_KEY}&language=es-ES`);
+                            const credits = await creditsRes.json();
+                            const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
+                            const executiveProducers = credits.crew?.filter(c => c.job === 'Executive Producer') || [];
+                            it.director = creators.length > 0 ? creators.map(c => c.name).join(', ') : 
+                                          executiveProducers.length > 0 ? executiveProducers.map(c => c.name).join(', ') : '';
+                        }
+                        // Obtener géneros
+                        if (tv.genres && tv.genres.length > 0) {
+                            it.genres = tv.genres.map(g => g.name).join(', ');
+                        } else {
+                            it.genres = '';
+                        }
+                    } else {
+                        const creditsRes = await fetch(`https://api.themoviedb.org/3/movie/${it.id}/credits?api_key=${API_KEY}&language=es-ES`);
+                        const credits = await creditsRes.json();
+                        const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
+                        const directors = credits.crew?.filter(c => c.job === 'Director') || [];
+                        it.director = creators.length > 0 ? creators.map(c => c.name).join(', ') : 
+                                      directors.length > 0 ? directors.map(d => d.name).join(', ') : '';
+                        // Obtener géneros de la película
+                        const movieRes = await fetch(`https://api.themoviedb.org/3/movie/${it.id}?api_key=${API_KEY}&language=es-ES`);
+                        const movie = await movieRes.json();
+                        if (movie.genres && movie.genres.length > 0) {
+                            it.genres = movie.genres.map(g => g.name).join(', ');
+                        } else {
+                            it.genres = '';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('credits fetch failed', e);
+                    it.director = '';
+                    it.genres = '';
+                }
                 selectedMovies.push(it);
                 card.classList.add('selected');
             }
@@ -513,6 +609,31 @@
                 episodesList = [];
                 const seasons = (tv.seasons || []).filter(s => s.season_number > 0);
 
+                // Obtener creadores de la serie usando el campo created_by de TMDB
+                if (tv.created_by && tv.created_by.length > 0) {
+                    it.director = tv.created_by.map(c => c.name).join(', ');
+                } else {
+                    // Fallback a credits/crew si no hay created_by
+                    try {
+                        const creditsRes = await fetch(`https://api.themoviedb.org/3/tv/${id}/credits?api_key=${API_KEY}&language=es-ES`);
+                        const credits = await creditsRes.json();
+                        const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
+                        const executiveProducers = credits.crew?.filter(c => c.job === 'Executive Producer') || [];
+                        it.director = creators.length > 0 ? creators.map(c => c.name).join(', ') :
+                                      executiveProducers.length > 0 ? executiveProducers.map(c => c.name).join(', ') : '';
+                    } catch (e) {
+                        console.warn('credits fetch failed', e);
+                        it.director = '';
+                    }
+                }
+
+                // Obtener géneros
+                if (tv.genres && tv.genres.length > 0) {
+                    it.genres = tv.genres.map(g => g.name).join(', ');
+                } else {
+                    it.genres = '';
+                }
+
                 for (const s of seasons) {
                     const seasonNum = s.season_number;
                     try {
@@ -520,7 +641,7 @@
                         const seasonData = await rs.json();
                         const eps = seasonData.episodes || [];
                         eps.forEach(ep => {
-                            episodesList.push({ season: seasonNum, episode: ep.episode_number, name: ep.name, air_date: ep.air_date });
+                            episodesList.push({ season: seasonNum, episode: ep.episode_number, name: ep.name, air_date: ep.air_date, director: '' });
                         });
                     } catch (e) {
                         console.warn('season fetch failed', e);
@@ -530,7 +651,34 @@
             } else {
                 const title = it.title || it.name;
                 const date = it.release_date || it.first_air_date || '';
-                episodesList = [{ season: null, episode: null, name: title, air_date: date }];
+                episodesList = [{ season: null, episode: null, name: title, air_date: date, director: '' }];
+
+                // Obtener creador de la película
+                try {
+                    const creditsRes = await fetch(`https://api.themoviedb.org/3/movie/${it.id}/credits?api_key=${API_KEY}&language=es-ES`);
+                    const credits = await creditsRes.json();
+                    const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
+                    const directors = credits.crew?.filter(c => c.job === 'Director') || [];
+                    it.director = creators.length > 0 ? creators.map(c => c.name).join(', ') :
+                                  directors.length > 0 ? directors.map(d => d.name).join(', ') : '';
+                } catch (e) {
+                    console.warn('credits fetch failed', e);
+                    it.director = '';
+                }
+
+                // Obtener géneros de la película
+                try {
+                    const movieRes = await fetch(`https://api.themoviedb.org/3/movie/${it.id}?api_key=${API_KEY}&language=es-ES`);
+                    const movie = await movieRes.json();
+                    if (movie.genres && movie.genres.length > 0) {
+                        it.genres = movie.genres.map(g => g.name).join(', ');
+                    } else {
+                        it.genres = '';
+                    }
+                } catch (e) {
+                    console.warn('movie details fetch failed', e);
+                    it.genres = '';
+                }
             }
         }
 
@@ -538,13 +686,9 @@
 
         function getEvolutionEmoji(index, episodes) {
             const current = episodes[index];
-            const isLastEpisode = index === episodes.length - 1;
-            const nextEpisode = episodes[index + 1];
-            const isLastOfSeason = isLastEpisode || (current.season !== nextEpisode.season);
-            if (isLastEpisode) return '🏁';
-            if (isLastOfSeason) return '🚩';
-            if (index === 0) return '🚀';
-            return '➡️';
+            const isFirstOfSeason = index === 0 || (index > 0 && current.season !== episodes[index - 1].season);
+            if (isFirstOfSeason) return '🍿';
+            return '';
         }
 
         generateBtn.addEventListener('click', async () => {
@@ -558,13 +702,19 @@
             const includeSE = optSeasonEpisode.checked;
             const includeName = optEpisodeName.checked;
             const includeDate = optAirDate.checked;
-            const format = document.querySelector('input[name="format"]:checked').value;
+            const includeDirector = optIncludeDirector.checked;
+            const includeGenre = optIncludeGenre.checked;
+            const includeEpisodeDirector = optIncludeEpisodeDirector.checked;
+            const formatBtn = document.querySelector('.format-btn.active');
+            const format = formatBtn ? formatBtn.dataset.format : '1';
             const emoji = emojiInput.value || '';
             const useEvolution = optEvolvingEmoji.checked;
             const title = selectedItem.title || selectedItem.name || selectedItem.original_name || '';
             const date = selectedItem.release_date || selectedItem.first_air_date || '';
             const ratingSuffix = optIncludeRating.checked && selectedItem.vote_average ? ` ⭐${selectedItem.vote_average.toFixed(1)} / 10` : '';
-            mainTaskModal.value = `${title}${date ? ' (' + date.split('-')[0] + ')' : ''}${ratingSuffix}`;
+            const directorSuffix = includeDirector && selectedItem.director ? ` | Creador: ${selectedItem.director}` : '';
+            const genreSuffix = includeGenre && selectedItem.genres ? ` | ${selectedItem.genres}` : '';
+            mainTaskModal.value = `${title}${date ? ' (' + date.split('-')[0] + ')' : ''}${ratingSuffix}${directorSuffix}${genreSuffix}`;
 
             let lines = [];
             if (episodesList.length === 1 && episodesList[0].season == null) {
@@ -574,17 +724,36 @@
                 }
                 lines.push(line.trim());
             } else {
+                // Obtener directores de episodios si está seleccionado
+                if (includeEpisodeDirector) {
+                    const id = selectedItem.id;
+                    for (const ep of episodesList) {
+                        if (ep.season != null) {
+                            try {
+                                const epRes = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${ep.season}/episode/${ep.episode}/credits?api_key=${API_KEY}&language=es-ES`);
+                                const epCredits = await epRes.json();
+                                const directors = epCredits.crew?.filter(c => c.job === 'Director') || [];
+                                ep.director = directors.length > 0 ? directors.map(d => d.name).join(', ') : '';
+                            } catch (e) {
+                                console.warn('episode credits fetch failed', e);
+                                ep.director = '';
+                            }
+                        }
+                    }
+                }
+
                 episodesList.forEach((ep, index) => {
                     const s = ep.season; const e = ep.episode;
                     let seCode = '';
                     if (includeSE && s != null) { seCode = 'T' + pad(s) + '|' + pad(e); }
                     const name = includeName ? ep.name : '';
                     const dateStr = includeDate && ep.air_date ? ` (${ep.air_date})` : '';
+                    const directorStr = includeEpisodeDirector && ep.director ? ` | Dir: ${ep.director}` : '';
                     let line = '';
                     if (format === '1') {
-                        line = seCode + (seCode && name ? ' - ' : '') + name + dateStr;
+                        line = seCode + (seCode && name ? ' - ' : '') + name + dateStr + directorStr;
                     } else {
-                        line = name + (name && seCode ? ' - ' : '') + seCode + dateStr;
+                        line = name + (name && seCode ? ' - ' : '') + seCode + dateStr + directorStr;
                     }
                     if (useEvolution) {
                         line = getEvolutionEmoji(index, episodesList) + ' ' + line;
@@ -607,14 +776,18 @@
             const includeDate = optAirDate.checked;
             const emoji = emojiInput.value || '';
             const includeRating = optIncludeRating.checked;
+            const includeDirector = optIncludeDirector.checked;
+            const includeGenre = optIncludeGenre.checked;
 
             const lines = selectedMovies.map(movie => {
                 const title = movie.title || movie.name || 'Sin título';
                 const date = movie.release_date || movie.first_air_date || '';
                 const year = date ? ` (${date.split('-')[0]})` : '';
                 const rating = includeRating && movie.vote_average ? ` ⭐${movie.vote_average.toFixed(1)} / 10` : '';
+                const director = includeDirector && movie.director ? ` | Creador: ${movie.director}` : '';
+                const genre = includeGenre && movie.genres ? ` | ${movie.genres}` : '';
                 const dateStr = includeDate && date ? ` ${date}` : '';
-                let line = `${title}${year}${rating}`.trim();
+                let line = `${title}${year}${rating}${director}${genre}`.trim();
                 if (emoji) {
                     line = `${emoji} ${line}`.trim();
                 }
