@@ -92,6 +92,12 @@
                     <button type="button">🩸</button>
                 </div>
             </div>
+            <div class="preview-section">
+                <h3>Vista previa del formato</h3>
+                <div id="previewContent" class="preview-content">
+                    <p class="preview-placeholder">Selecciona opciones para ver la vista previa...</p>
+                </div>
+            </div>
             <div class="action-row">
                 <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ultima búsqueda</button>
                 <button id="clearSearchBtn" type="button" class="secondary-btn">Limpiar búsqueda</button>
@@ -153,6 +159,7 @@
         const alertModal = document.getElementById('alertModal');
         const alertMessage = document.getElementById('alertMessage');
         const alertCloseBtn = document.getElementById('alertCloseBtn');
+        const previewContent = document.getElementById('previewContent');
         const searchBtn = document.getElementById('searchBtn');
         const resultsEl = document.getElementById('results');
         const selectedMoviesEl = document.getElementById('selectedMovies');
@@ -307,6 +314,253 @@
         optSeasonEpisode.addEventListener('change', updateFormatAvailability);
         optEpisodeName.addEventListener('change', updateFormatAvailability);
 
+        // Función para actualizar la vista previa en tiempo real
+        function updatePreview() {
+            const isTV = currentMode === 'tv';
+            const includeSE = optSeasonEpisode.checked;
+            const includeName = optEpisodeName.checked;
+            const includeDate = optAirDate.checked;
+            const includeRating = optIncludeRating.checked;
+            const includeDirector = optIncludeDirector.checked;
+            const includeGenre = optIncludeGenre.checked;
+            const includeEpisodeDirector = optIncludeEpisodeDirector.checked;
+            const useEvolution = optEvolvingEmoji.checked;
+            const emoji = emojiInput.value || '';
+            const formatBtn = document.querySelector('.format-btn.active');
+            const format = formatBtn ? formatBtn.dataset.format : '1';
+            const titleFormatBtn = document.querySelector('.title-format-btn.active');
+            const titleFormat = titleFormatBtn ? titleFormatBtn.dataset.titleFormat : '1';
+
+            let previewText = '';
+
+            if (isTV) {
+                // Modo: Buscar una serie y sus episodios
+                const year = '2023';
+                let titleText = 'Ejemplo: Goosebumps';
+                
+                // Aplicar formato de título seleccionado
+                if (titleFormat === '1') {
+                    titleText = `Ejemplo: Goosebumps (${year})`;
+                } else if (titleFormat === '2') {
+                    titleText = `Ejemplo: [${year}] Goosebumps`;
+                } else if (titleFormat === '3') {
+                    titleText = `Ejemplo: ${year} · Goosebumps`;
+                }
+
+                if (includeRating) {
+                    titleText += ' ⭐8.5 / 10';
+                }
+                if (includeDirector) {
+                    titleText += ' | Creador: Director Nombre';
+                }
+                if (includeGenre) {
+                    titleText += ' | Género';
+                }
+                previewText = titleText + '\n';
+
+                if (includeSE && includeName) {
+                    let ep1 = '';
+                    let ep2 = '';
+                    if (format === '1') {
+                        ep1 = 'T01|E01 - Primer episodio';
+                        ep2 = 'T01|E02 - Segundo episodio';
+                    } else {
+                        ep1 = 'Primer episodio - T01|E01';
+                        ep2 = 'Segundo episodio - T01|E02';
+                    }
+
+                    if (includeDate) {
+                        ep1 += ' (2023-10-25)';
+                        ep2 += ' (2023-10-25)';
+                    }
+                    if (includeEpisodeDirector) {
+                        ep1 += ' | Dir: Director Nombre';
+                        ep2 += ' | Dir: Director Nombre';
+                    }
+                    if (emoji) {
+                        ep1 = `${emoji} ${ep1}`;
+                        ep2 = `${emoji} ${ep2}`;
+                    }
+                    if (useEvolution) {
+                        ep1 = `🍿 ${ep1}`;
+                    }
+
+                    previewText += ep1 + '\n' + ep2;
+                } else if (includeSE) {
+                    let ep1 = 'T01|E01';
+                    let ep2 = 'T01|E02';
+                    if (includeDate) {
+                        ep1 += ' (2023-10-25)';
+                        ep2 += ' (2023-10-25)';
+                    }
+                    if (includeEpisodeDirector) {
+                        ep1 += ' | Dir: Director Nombre';
+                        ep2 += ' | Dir: Director Nombre';
+                    }
+                    if (emoji) {
+                        ep1 = `${emoji} ${ep1}`;
+                        ep2 = `${emoji} ${ep2}`;
+                    }
+                    if (useEvolution) {
+                        ep1 = `🍿 ${ep1}`;
+                    }
+                    previewText += ep1 + '\n' + ep2;
+                } else if (includeName) {
+                    let ep1 = 'Primer episodio';
+                    let ep2 = 'Segundo episodio';
+                    if (includeDate) {
+                        ep1 += ' (2023-10-25)';
+                        ep2 += ' (2023-10-25)';
+                    }
+                    if (includeEpisodeDirector) {
+                        ep1 += ' | Dir: Director Nombre';
+                        ep2 += ' | Dir: Director Nombre';
+                    }
+                    if (emoji) {
+                        ep1 = `${emoji} ${ep1}`;
+                        ep2 = `${emoji} ${ep2}`;
+                    }
+                    if (useEvolution) {
+                        ep1 = `🍿 ${ep1}`;
+                    }
+                    previewText += ep1 + '\n' + ep2;
+                } else {
+                    previewText += '(Selecciona al menos "Incluir Temporada/Episodio" o "Incluir Nombre del episodio")';
+                }
+            } else {
+                // Modo: Buscar series y películas
+                const year = '2023';
+                let formattedTitle = '';
+                if (titleFormat === '1') {
+                    formattedTitle = `Ejemplo: Título (${year})`;
+                } else if (titleFormat === '2') {
+                    formattedTitle = `Ejemplo: [${year}] Título`;
+                } else if (titleFormat === '3') {
+                    formattedTitle = `Ejemplo: ${year} · Título`;
+                }
+
+                previewText = formattedTitle;
+
+                if (includeRating) {
+                    previewText += ' ⭐8.5 / 10';
+                }
+                if (includeDirector) {
+                    previewText += ' | Creador: Director Nombre';
+                }
+                if (includeGenre) {
+                    previewText += ' | Género';
+                }
+                if (includeDate) {
+                    previewText += ' 2023-10-25';
+                }
+                if (emoji) {
+                    previewText = `${emoji} ${previewText}`;
+                }
+            }
+
+            previewContent.textContent = previewText;
+            previewContent.classList.remove('preview-placeholder');
+        }
+
+        // Event listeners para actualizar vista previa
+        const allCheckboxes = document.querySelectorAll('.option-row input[type="checkbox"]');
+        allCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updatePreview);
+        });
+        emojiInput.addEventListener('input', updatePreview);
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', updatePreview);
+        });
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', updatePreview);
+        });
+
+        // Función para guardar opciones en LocalStorage
+        function saveOptions() {
+            const options = {
+                currentMode: currentMode,
+                optSeasonEpisode: optSeasonEpisode.checked,
+                optEpisodeName: optEpisodeName.checked,
+                optAirDate: optAirDate.checked,
+                optIncludeRating: optIncludeRating.checked,
+                optIncludeDirector: optIncludeDirector.checked,
+                optIncludeGenre: optIncludeGenre.checked,
+                optIncludeEpisodeDirector: optIncludeEpisodeDirector.checked,
+                optEvolvingEmoji: optEvolvingEmoji.checked,
+                emoji: emojiInput.value,
+                format: document.querySelector('.format-btn.active')?.dataset.format || '1',
+                titleFormat: document.querySelector('.title-format-btn.active')?.dataset.titleFormat || '1'
+            };
+            localStorage.setItem('todoPopcornOptions', JSON.stringify(options));
+        }
+
+        // Función para cargar opciones desde LocalStorage
+        function loadOptions() {
+            const savedOptions = localStorage.getItem('todoPopcornOptions');
+            if (savedOptions) {
+                const options = JSON.parse(savedOptions);
+
+                // Cargar modo de búsqueda
+                if (options.currentMode) {
+                    currentMode = options.currentMode;
+                    modeBtns.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.mode === currentMode) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    updateModeUI();
+                }
+
+                // Cargar checkboxes
+                if (options.optSeasonEpisode !== undefined) optSeasonEpisode.checked = options.optSeasonEpisode;
+                if (options.optEpisodeName !== undefined) optEpisodeName.checked = options.optEpisodeName;
+                if (options.optAirDate !== undefined) optAirDate.checked = options.optAirDate;
+                if (options.optIncludeRating !== undefined) optIncludeRating.checked = options.optIncludeRating;
+                if (options.optIncludeDirector !== undefined) optIncludeDirector.checked = options.optIncludeDirector;
+                if (options.optIncludeGenre !== undefined) optIncludeGenre.checked = options.optIncludeGenre;
+                if (options.optIncludeEpisodeDirector !== undefined) optIncludeEpisodeDirector.checked = options.optIncludeEpisodeDirector;
+                if (options.optEvolvingEmoji !== undefined) optEvolvingEmoji.checked = options.optEvolvingEmoji;
+
+                // Cargar emoji
+                if (options.emoji !== undefined) emojiInput.value = options.emoji;
+
+                // Cargar formato de episodios
+                if (options.format) {
+                    formatBtns.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.format === options.format) {
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+
+                // Cargar formato de título
+                if (options.titleFormat) {
+                    titleFormatBtns.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.titleFormat === options.titleFormat) {
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+
+                updatePreview();
+            }
+        }
+
+        // Event listeners para guardar opciones cuando cambian
+        allCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', saveOptions);
+        });
+        emojiInput.addEventListener('input', saveOptions);
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', saveOptions);
+        });
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', saveOptions);
+        });
+
         // Función para mostrar alerta personalizada
         function showAlert(message) {
             alertMessage.textContent = message;
@@ -440,6 +694,8 @@
             btn.addEventListener('click', () => {
                 titleFormatBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                updatePreview();
+                saveOptions();
             });
         });
 
@@ -949,6 +1205,7 @@
 
         renderTutorialCard();
         updateModeUI();
+        loadOptions();
 
     })();
     </script>

@@ -519,6 +519,35 @@ textarea {
     flex-wrap: wrap;
     align-items: center;
 }
+.preview-section {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #1a1a22;
+    border: 1px solid #2a2a32;
+    border-radius: 12px;
+}
+.preview-section h3 {
+    margin: 0 0 0.75rem 0;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+.preview-content {
+    background: #12121a;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 80px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    color: #bbb;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+.preview-placeholder {
+    color: #666;
+    font-style: italic;
+    margin: 0;
+}
 .instruction-panel {
     margin: 0 auto 1rem auto;
     max-width: 960px;
