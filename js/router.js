@@ -85,6 +85,11 @@
                         }
                     });
 
+                    // Llamar a funciones de inicialización expuestas globalmente
+                    if (typeof window.initTodoPopcorn === 'function') {
+                        window.initTodoPopcorn();
+                    }
+
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
                     document.title = title;
                     

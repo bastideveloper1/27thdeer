@@ -1391,4 +1391,7 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
+// Exponer initApp globalmente para que el router pueda llamarla
+window.initTodoPopcorn = initApp;
 })();
