@@ -41,20 +41,42 @@
                 if (newMain && currentMain) {
                     currentMain.innerHTML = newMain.innerHTML;
 
-                    // Eliminar scripts inyectados anteriormente para evitar acumulación
-                    document.querySelectorAll('script[data-router-injected]').forEach(old => old.remove());
-
                     // Ejecutar scripts incluidos en el HTML cargado (scripts inline o con src)
                     // Al insertar HTML con innerHTML los <script> no se ejecutan, así que los clonamos y los añadimos al body.
                     const scripts = temp.querySelectorAll('script');
                     scripts.forEach(oldScript => {
                         try {
+                            // Verificar si el script ya existe para evitar carga duplicada
+                            if (oldScript.src) {
+                                // Normalizar el src para comparación (convertir relativo a absoluto)
+                                const scriptSrc = new URL(oldScript.src, window.location.href).href;
+                                const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
+                                if (existingScript) {
+                                    console.log('Script ya existe, evitando carga duplicada:', scriptSrc);
+                                    return;
+                                }
+                            } else {
+                                // Para scripts inline, usar un hash del contenido como identificador
+                                const scriptContent = oldScript.textContent.trim();
+                                const scriptHash = scriptContent.substring(0, 50).replace(/\s+/g, '_');
+                                const scriptId = `inline-script-${scriptHash}`;
+                                const existingScript = document.querySelector(`script[data-script-id="${scriptId}"]`);
+                                if (existingScript) {
+                                    console.log('Script inline ya existe, evitando carga duplicada:', scriptId);
+                                    return;
+                                }
+                            }
                             const s = document.createElement('script');
                             if (oldScript.src) {
-                                s.src = oldScript.src;
+                                // Usar el src normalizado
+                                s.src = new URL(oldScript.src, window.location.href).href;
                                 s.async = false;
                             } else {
                                 s.textContent = oldScript.textContent;
+                                // Agregar identificador único para scripts inline
+                                const scriptContent = oldScript.textContent.trim();
+                                const scriptHash = scriptContent.substring(0, 50).replace(/\s+/g, '_');
+                                s.dataset.scriptId = `inline-script-${scriptHash}`;
                             }
                             s.dataset.routerInjected = '1';
                             document.body.appendChild(s);
