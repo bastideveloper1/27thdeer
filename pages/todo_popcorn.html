@@ -65,6 +65,14 @@
                     <button type="button" class="format-btn" data-format="2">Nombre - T01|E01</button>
                 </div>
             </div>
+            <div class="format-select">
+                <span id="languageLabel">Idioma:</span>
+                <div class="language-toggle">
+                    <button type="button" class="language-btn active" data-language="es-ES">Español 🇪🇸</button>
+                    <button type="button" class="language-btn" data-language="es-MX">Latino 🇲🇽</button>
+                    <button type="button" class="language-btn" data-language="en-US">English 🇺🇸</button>
+                </div>
+            </div>
             <div class="emoji-picker">
                 <label>Emoji o texto por episodio (máx 5 caracteres)</label>
                 <div class="emoji-control">
@@ -74,22 +82,59 @@
                 <div id="emojiList" class="emoji-list">
                     <button type="button">🍿</button>
                     <button type="button">🎬</button>
-                    <button type="button">✨</button>
                     <button type="button">🎥</button>
-                    <button type="button">⭐</button>
-                    <button type="button">🔥</button>
-                    <button type="button">🧩</button>
-                    <button type="button">🎞️</button>
-                    <button type="button">👽</button>
-                    <button type="button">🧙‍♂️</button>
-                    <button type="button">💘</button>
-                    <button type="button">🕵️‍♀️</button>
-                    <button type="button">👻</button>
-                    <button type="button">🤖</button>
-                    <button type="button">🧪</button>
+                    <button type="button">🚀</button>
+                    <button type="button">🛸</button>
                     <button type="button">🪐</button>
-                    <button type="button">🧜‍♀️</button>
-                    <button type="button">🩸</button>
+                    <button type="button">�</button>
+                    <button type="button">🌙</button>
+                    <button type="button">⭐</button>
+                    <button type="button">🌟</button>
+                    <button type="button">�</button>
+                    <button type="button">👽</button>
+                    <button type="button">�</button>
+                    <button type="button">🧟</button>
+                    <button type="button">🧛</button>
+                    <button type="button">🧙‍♂️</button>
+                    <button type="button">🧙‍♀️</button>
+                    <button type="button">🧝‍♂️</button>
+                    <button type="button">🧝‍♀️</button>
+                    <button type="button">🧚‍♂️</button>
+                    <button type="button">�‍♀️</button>
+                    <button type="button">👻</button>
+                    <button type="button">💀</button>
+                    <button type="button">�</button>
+                    <button type="button">🐺</button>
+                    <button type="button">🐉</button>
+                    <button type="button">🦕</button>
+                    <button type="button">🦖</button>
+                    <button type="button">🦄</button>
+                    <button type="button">🦈</button>
+                    <button type="button">🐙</button>
+                    <button type="button">🦑</button>
+                    <button type="button">🐍</button>
+                    <button type="button">🕷️</button>
+                    <button type="button">🦂</button>
+                    <button type="button">�</button>
+                    <button type="button">🦂</button>
+                    <button type="button">�</button>
+                    <button type="button">⚔️</button>
+                    <button type="button">🗡️</button>
+                    <button type="button">�️</button>
+                    <button type="button">🏹</button>
+                    <button type="button">�</button>
+                    <button type="button">�</button>
+                    <button type="button">�</button>
+                    <button type="button">�</button>
+                    <button type="button">💧</button>
+                    <button type="button">⚡</button>
+                    <button type="button">🌪️</button>
+                    <button type="button">☄️</button>
+                    <button type="button">🌊</button>
+                    <button type="button">🌋</button>
+                    <button type="button">🏰</button>
+                    <button type="button">🏯</button>
+                    <button type="button">�</button>
                 </div>
             </div>
             <div class="preview-section">
@@ -147,6 +192,11 @@
             <p id="alertMessage"></p>
             <button id="alertCloseBtn" type="button">Aceptar</button>
         </div>
+    </div>
+
+    <!-- Loader global -->
+    <div id="globalLoader" class="global-loader" style="display:none;">
+        <div class="spinner"></div>
     </div>
 
     <script src="../js/todo_popcorn_traditional.js"></script>

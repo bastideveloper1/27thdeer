@@ -160,6 +160,33 @@
     background: #2a2640;
 }
 
+.language-toggle {
+    grid-column: span 2;
+    display: flex;
+    gap: 0.5rem;
+}
+.language-btn {
+    flex: 1;
+    background: #1c1c24;
+    border: 1px solid #2a2a32;
+    border-radius: 10px;
+    padding: 0.5rem;
+    color: #ddd;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 2.5rem;
+    font-size: 0.85rem;
+}
+.language-btn.active {
+    background: #5c3597;
+    border-color: #b079ff;
+    color: #fff;
+}
+.language-btn:hover:not(.active) {
+    background: #2a2640;
+}
+
 /* Modal personalizado para alertas */
 .alert-modal {
     display: none;
@@ -275,12 +302,12 @@
 }
 .emoji-list button {
     width: 100%;
-    padding: 0.8rem 0;
+    padding: 0.6rem 0;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.04);
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     cursor: pointer;
 }
 .emoji-list button:hover {
@@ -894,7 +921,7 @@ textarea {
         align-items: stretch;
     }
     .emoji-list {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
     .search-row {
         flex-direction: column;
@@ -930,4 +957,55 @@ textarea {
         padding: 0.4rem 0.8rem;
         min-width: 48px;
     }
+}
+
+/* Estado de carga para botones y elementos interactivos */
+.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loader global */
+.global-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.global-loader .spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid rgba(147, 51, 234, 0.3);
+    border-top-color: #9333ea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }

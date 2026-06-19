@@ -4,7 +4,8 @@ const todoPopcornConfig = {
     tmdb: {
         apiKey: 'df600a328fa6b72a4d012a0ef3ab14a6',
         imageBase: 'https://image.tmdb.org/t/p/w300',
-        baseURL: 'https://api.themoviedb.org/3'
+        baseURL: 'https://api.themoviedb.org/3',
+        language: 'es-ES'
     },
     storage: {
         prefix: 'todoPopcorn_',
@@ -66,6 +67,17 @@ const DOMUtils = {
         if (parent && child) parent.appendChild(child);
     }
 };
+
+// Funciones helper para el loader global
+function showGlobalLoader() {
+    const loader = DOMUtils.getElement('globalLoader');
+    if (loader) loader.style.display = 'flex';
+}
+
+function hideGlobalLoader() {
+    const loader = DOMUtils.getElement('globalLoader');
+    if (loader) loader.style.display = 'none';
+}
 
 // Utilidades de formato
 const FormatUtils = {
@@ -308,10 +320,11 @@ class TMDBService {
         this.apiKey = todoPopcornConfig.tmdb.apiKey;
         this.baseURL = todoPopcornConfig.tmdb.baseURL;
         this.imageBase = todoPopcornConfig.tmdb.imageBase;
+        this.language = todoPopcornConfig.tmdb.language;
     }
 
     async searchMulti(query) {
-        const url = `${this.baseURL}/search/multi?api_key=${this.apiKey}&language=es-ES&query=${encodeURIComponent(query)}&include_adult=false`;
+        const url = `${this.baseURL}/search/multi?api_key=${this.apiKey}&language=${this.language}&query=${encodeURIComponent(query)}&include_adult=false`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
         const data = await res.json();
@@ -319,42 +332,42 @@ class TMDBService {
     }
 
     async getTVDetails(id) {
-        const url = `${this.baseURL}/tv/${id}?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/tv/${id}?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener detalles de TV: ' + res.status);
         return await res.json();
     }
 
     async getTVCredits(id) {
-        const url = `${this.baseURL}/tv/${id}/credits?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/tv/${id}/credits?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener créditos de TV: ' + res.status);
         return await res.json();
     }
 
     async getSeasonDetails(tvId, seasonNum) {
-        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener temporada: ' + res.status);
         return await res.json();
     }
 
     async getEpisodeCredits(tvId, seasonNum, episodeNum) {
-        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}/episode/${episodeNum}/credits?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}/episode/${episodeNum}/credits?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener créditos de episodio: ' + res.status);
         return await res.json();
     }
 
     async getMovieDetails(id) {
-        const url = `${this.baseURL}/movie/${id}?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/movie/${id}?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener detalles de película: ' + res.status);
         return await res.json();
     }
 
     async getMovieCredits(id) {
-        const url = `${this.baseURL}/movie/${id}/credits?api_key=${this.apiKey}&language=es-ES`;
+        const url = `${this.baseURL}/movie/${id}/credits?api_key=${this.apiKey}&language=${this.language}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al obtener créditos de película: ' + res.status);
         return await res.json();
@@ -365,9 +378,13 @@ class TMDBService {
             const tv = await this.getTVDetails(id);
             if (tv.created_by && tv.created_by.length > 0) {
                 return tv.created_by.map(c => c.name).join(', ');
-            } else {
-                return '';
             }
+            // Fallback: si no hay created_by, buscar en créditos
+            const credits = await this.getTVCredits(id);
+            const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
+            const executiveProducers = credits.crew?.filter(c => c.job === 'Executive Producer') || [];
+            return creators.length > 0 ? creators.map(c => c.name).join(', ') :
+                   executiveProducers.length > 0 ? executiveProducers.map(c => c.name).join(', ') : '';
         } catch (e) {
             console.warn('Error al obtener creador de TV:', e);
             return '';
@@ -452,7 +469,6 @@ class TodoPopcornApp {
         this.selectedMoviesPage = 0;
         this.currentMode = 'multi-movies';
         this.lastGeneratedOutput = null;
-        this.MAX_MOVIES = 20;
         this.MOVIES_PER_PAGE = 5;
         
         this.tutorialCards = [
@@ -517,6 +533,11 @@ class TodoPopcornApp {
         const titleFormatBtns = DOMUtils.getElements('.title-format-btn');
         titleFormatBtns.forEach(btn => {
             DOMUtils.addEventListener(btn, 'click', () => this.handleTitleFormatClick(btn));
+        });
+
+        const languageBtns = DOMUtils.getElements('.language-btn');
+        languageBtns.forEach(btn => {
+            DOMUtils.addEventListener(btn, 'click', () => this.handleLanguageClick(btn));
         });
 
         const modeBtns = DOMUtils.getElements('.mode-btn');
@@ -637,6 +658,24 @@ class TodoPopcornApp {
         DOMUtils.addClass(btn, 'active');
         this.updatePreview();
         this.saveOptions();
+    }
+
+    handleLanguageClick(btn) {
+        const languageBtns = DOMUtils.getElements('.language-btn');
+        languageBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
+        DOMUtils.addClass(btn, 'active');
+        
+        const newLanguage = btn.dataset.language;
+        this.tmdbService.language = newLanguage;
+        
+        this.saveOptions();
+        
+        // Si hay resultados visibles, volver a ejecutar doSearch() para refrescar con el nuevo idioma
+        const searchInput = DOMUtils.getElement('searchInput');
+        const resultsEl = DOMUtils.getElement('results');
+        if (searchInput && searchInput.value.trim() && resultsEl && resultsEl.children.length > 0) {
+            this.doSearch();
+        }
     }
 
     handleModeClick(btn) {
@@ -770,6 +809,7 @@ class TodoPopcornApp {
     saveOptions() {
         const options = this.getCurrentOptions();
         options.currentMode = this.currentMode;
+        options.language = this.tmdbService.language;
         this.storageService.save(todoPopcornConfig.storage.keys.options, options);
     }
 
@@ -831,6 +871,17 @@ class TodoPopcornApp {
                 });
             }
 
+            if (savedOptions.language) {
+                this.tmdbService.language = savedOptions.language;
+                const languageBtns = DOMUtils.getElements('.language-btn');
+                languageBtns.forEach(btn => {
+                    DOMUtils.removeClass(btn, 'active');
+                    if (btn.dataset.language === savedOptions.language) {
+                        DOMUtils.addClass(btn, 'active');
+                    }
+                });
+            }
+
             this.updatePreview();
         }
     }
@@ -866,11 +917,20 @@ class TodoPopcornApp {
 
     async doSearch() {
         const searchInput = DOMUtils.getElement('searchInput');
+        const searchBtn = DOMUtils.getElement('searchBtn');
         const resultsEl = DOMUtils.getElement('results');
         const outputModal = DOMUtils.getElement('outputModal');
         
         const q = searchInput.value.trim();
         if (!q) return;
+        
+        showGlobalLoader();
+        
+        if (searchBtn) {
+            searchBtn.classList.add('loading');
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Buscando...';
+        }
         
         if (resultsEl) {
             DOMUtils.setHTML(resultsEl, '<p>Cargando resultados...</p>');
@@ -892,6 +952,13 @@ class TodoPopcornApp {
             console.error('Búsqueda fallida', error);
             if (resultsEl) {
                 DOMUtils.setHTML(resultsEl, '<p>Error buscando resultados. Por favor intenta de nuevo.</p>');
+            }
+        } finally {
+            hideGlobalLoader();
+            if (searchBtn) {
+                searchBtn.classList.remove('loading');
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Buscar';
             }
         }
     }
@@ -1023,6 +1090,8 @@ class TodoPopcornApp {
             this.selectedMovies.splice(existingIndex, 1);
             card.classList.remove('selected');
         } else {
+            showGlobalLoader();
+            card.classList.add('loading');
             const isTV = it.media_type === 'tv' || (!it.title && it.name);
             try {
                 if (isTV) {
@@ -1036,6 +1105,9 @@ class TodoPopcornApp {
                 console.warn('credits fetch failed', e);
                 it.director = '';
                 it.genres = '';
+            } finally {
+                hideGlobalLoader();
+                card.classList.remove('loading');
             }
             this.selectedMovies.push(it);
             card.classList.add('selected');
@@ -1044,40 +1116,45 @@ class TodoPopcornApp {
     }
 
     async loadDetails(it) {
+        showGlobalLoader();
         const outputModal = DOMUtils.getElement('outputModal');
         if (outputModal) outputModal.classList.remove('visible');
         
-        const isTV = it.media_type === 'tv' || (!it.title && it.name);
+        try {
+            const isTV = it.media_type === 'tv' || (!it.title && it.name);
 
-        if (isTV) {
-            const id = it.id;
-            const tv = await this.tmdbService.getTVDetails(id);
-            this.episodesList = [];
-            const seasons = (tv.seasons || []).filter(s => s.season_number > 0);
+            if (isTV) {
+                const id = it.id;
+                const tv = await this.tmdbService.getTVDetails(id);
+                this.episodesList = [];
+                const seasons = (tv.seasons || []).filter(s => s.season_number > 0);
 
-            it.director = await this.tmdbService.getTVCreator(id);
-            it.genres = await this.tmdbService.getTVGenres(id);
+                it.director = await this.tmdbService.getTVCreator(id);
+                it.genres = await this.tmdbService.getTVGenres(id);
 
-            for (const s of seasons) {
-                const seasonNum = s.season_number;
-                try {
-                    const seasonData = await this.tmdbService.getSeasonDetails(id, seasonNum);
-                    const eps = seasonData.episodes || [];
-                    eps.forEach(ep => {
-                        this.episodesList.push({ season: seasonNum, episode: ep.episode_number, name: ep.name, air_date: ep.air_date, director: '' });
-                    });
-                } catch (e) {
-                    console.warn('season fetch failed', e);
+                for (const s of seasons) {
+                    const seasonNum = s.season_number;
+                    try {
+                        const seasonData = await this.tmdbService.getSeasonDetails(id, seasonNum);
+                        const eps = seasonData.episodes || [];
+                        eps.forEach(ep => {
+                            this.episodesList.push({ season: seasonNum, episode: ep.episode_number, name: ep.name, air_date: ep.air_date, director: '' });
+                        });
+                    } catch (e) {
+                        console.warn('season fetch failed', e);
+                    }
                 }
-            }
-            this.episodesList.sort((a, b) => (a.season - b.season) || (a.episode - b.episode));
-        } else {
-            const title = it.title || it.name;
-            const date = it.release_date || it.first_air_date || '';
-            this.episodesList = [{ season: null, episode: null, name: title, air_date: date, director: '' }];
+                this.episodesList.sort((a, b) => (a.season - b.season) || (a.episode - b.episode));
+            } else {
+                const title = it.title || it.name;
+                const date = it.release_date || it.first_air_date || '';
+                this.episodesList = [{ season: null, episode: null, name: title, air_date: date, director: '' }];
 
-            it.director = await this.tmdbService.getMovieCreator(it.id);
-            it.genres = await this.tmdbService.getMovieGenres(it.id);
+                it.director = await this.tmdbService.getMovieCreator(it.id);
+                it.genres = await this.tmdbService.getMovieGenres(it.id);
+            }
+        } finally {
+            hideGlobalLoader();
         }
     }
 
@@ -1173,131 +1250,166 @@ class TodoPopcornApp {
     }
 
     async generateOutput() {
-        if (this.currentMode === 'multi-movies') {
-            if (!this.selectedMovies.length) return this.showAlert('Selecciona al menos una película.');
-            this.generateMovieList();
-            return;
-        }
-        if (!this.selectedItem) return this.showAlert('Selecciona una serie o película primero');
-
-        const options = this.getCurrentOptions();
-        const title = this.selectedItem.title || this.selectedItem.name || this.selectedItem.original_name || '';
-        const date = this.selectedItem.release_date || this.selectedItem.first_air_date || '';
-        const year = date ? date.split('-')[0] : '';
-        const ratingSuffix = options.includeRating && this.selectedItem.vote_average ? ` ⭐${this.selectedItem.vote_average.toFixed(1)} / 10` : '';
-        const directorSuffix = options.includeDirector && this.selectedItem.director ? ` | Creador: ${this.selectedItem.director}` : '';
-        const genreSuffix = options.includeGenre && this.selectedItem.genres ? ` | ${this.selectedItem.genres}` : '';
-
-        const formattedTitle = FormatUtils.formatTitle(title, year, options.titleFormat);
-
-        const mainTaskModal = DOMUtils.getElement('mainTaskModal');
-        const subtasksModal = DOMUtils.getElement('subtasksModal');
-        if (mainTaskModal) {
-            DOMUtils.setValue(mainTaskModal, `${formattedTitle}${ratingSuffix}${directorSuffix}${genreSuffix}`);
+        const generateBtn = DOMUtils.getElement('generateBtn');
+        if (generateBtn) {
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generando...';
         }
 
-        let lines = [];
-        if (this.episodesList.length === 1 && this.episodesList[0].season == null) {
-            let line = `${options.emoji}${this.episodesList[0].name}`.trim();
-            if (options.useEvolution) {
-                line = this.getEvolutionEmoji(0, this.episodesList) + ' ' + this.episodesList[0].name;
+        showGlobalLoader();
+
+        try {
+            if (this.currentMode === 'multi-movies') {
+                if (!this.selectedMovies.length) return this.showAlert('Selecciona al menos una película.');
+                this.generateMovieList();
+                return;
             }
-            lines.push(line.trim());
-        } else {
-            if (options.includeEpisodeDirector) {
-                const id = this.selectedItem.id;
-                for (const ep of this.episodesList) {
-                    if (ep.season != null) {
-                        try {
-                            ep.director = await this.tmdbService.getEpisodeDirector(id, ep.season, ep.episode);
-                        } catch (e) {
-                            console.warn('episode credits fetch failed', e);
-                            ep.director = '';
-                        }
-                    }
-                }
-            }
+            if (!this.selectedItem) return this.showAlert('Selecciona una serie o película primero');
 
-            this.episodesList.forEach((ep, index) => {
-                const seCode = options.includeSE && ep.season != null ? FormatUtils.formatSeasonEpisode(ep.season, ep.episode) : '';
-                const name = options.includeName ? ep.name : '';
-                const dateStr = options.includeDate && ep.air_date ? FormatUtils.formatDate(ep.air_date) : '';
-                const directorStr = options.includeEpisodeDirector && ep.director ? FormatUtils.formatEpisodeDirector(ep.director) : '';
-                let line = FormatUtils.formatEpisode(ep.season, ep.episode, name, options.format);
-                line += dateStr + directorStr;
-                if (options.useEvolution) {
-                    line = this.getEvolutionEmoji(index, this.episodesList) + ' ' + line;
-                } else if (options.emoji) {
-                    line = options.emoji + ' ' + line;
-                }
-                lines.push(line.trim());
-            });
-        }
-
-        if (subtasksModal) {
-            DOMUtils.setValue(subtasksModal, lines.join('\n'));
-        }
-
-        const mainTaskSection = DOMUtils.getElement('mainTaskSection');
-        const episodesSection = DOMUtils.getElement('episodesSection');
-        if (mainTaskSection) mainTaskSection.style.display = 'block';
-        if (episodesSection) {
-            episodesSection.style.display = 'block';
-            const h3 = episodesSection.querySelector('h3');
-            if (h3) DOMUtils.setText(h3, 'episodios');
-        }
-        
-        this.lastGeneratedOutput = { main: mainTaskModal ? mainTaskModal.value : '', subs: subtasksModal ? subtasksModal.value : '', hasEpisodes: true };
-        
-        const outputModal = DOMUtils.getElement('outputModal');
-        if (outputModal) outputModal.classList.add('visible');
-    }
-
-    generateMovieList() {
-        const options = this.getCurrentOptions();
-
-        const lines = this.selectedMovies.map(movie => {
-            const title = movie.title || movie.name || 'Sin título';
-            const date = movie.release_date || movie.first_air_date || '';
+            const options = this.getCurrentOptions();
+            const title = this.selectedItem.title || this.selectedItem.name || this.selectedItem.original_name || '';
+            const date = this.selectedItem.release_date || this.selectedItem.first_air_date || '';
             const year = date ? date.split('-')[0] : '';
-            const rating = options.includeRating && movie.vote_average ? FormatUtils.formatRating(movie.vote_average) : '';
-            const director = options.includeDirector && movie.director ? FormatUtils.formatCreator(movie.director) : '';
-            const genre = options.includeGenre && movie.genres ? FormatUtils.formatGenre(movie.genres) : '';
-            const dateStr = options.includeDate && date ? FormatUtils.formatDate(date) : '';
+            const ratingSuffix = options.includeRating && this.selectedItem.vote_average ? ` ⭐${this.selectedItem.vote_average.toFixed(1)} / 10` : '';
+            const directorSuffix = options.includeDirector && this.selectedItem.director ? ` | Creador: ${this.selectedItem.director}` : '';
+            const genreSuffix = options.includeGenre && this.selectedItem.genres ? ` | ${this.selectedItem.genres}` : '';
 
             const formattedTitle = FormatUtils.formatTitle(title, year, options.titleFormat);
 
-            let line = `${formattedTitle}${rating}${director}${genre}`.trim();
-            if (options.emoji) {
-                line = `${options.emoji} ${line}`.trim();
+            const mainTaskModal = DOMUtils.getElement('mainTaskModal');
+            const subtasksModal = DOMUtils.getElement('subtasksModal');
+            if (mainTaskModal) {
+                DOMUtils.setValue(mainTaskModal, `${formattedTitle}${ratingSuffix}${directorSuffix}${genreSuffix}`);
             }
-            if (dateStr) {
-                line += dateStr;
+
+            let lines = [];
+            if (this.episodesList.length === 1 && this.episodesList[0].season == null) {
+                let line = `${options.emoji}${this.episodesList[0].name}`.trim();
+                if (options.useEvolution) {
+                    const evo = this.getEvolutionEmoji(0, this.episodesList);
+                    if (evo) line = evo + ' ' + this.episodesList[0].name;
+                }
+                lines.push(line.trim());
+            } else {
+                if (options.includeEpisodeDirector) {
+                    const id = this.selectedItem.id;
+                    for (const ep of this.episodesList) {
+                        if (ep.season != null) {
+                            try {
+                                ep.director = await this.tmdbService.getEpisodeDirector(id, ep.season, ep.episode);
+                            } catch (e) {
+                                console.warn('episode credits fetch failed', e);
+                                ep.director = '';
+                            }
+                        }
+                    }
+                }
+
+                this.episodesList.forEach((ep, index) => {
+                    const seCode = options.includeSE && ep.season != null ? FormatUtils.formatSeasonEpisode(ep.season, ep.episode) : '';
+                    const name = options.includeName ? ep.name : '';
+                    const dateStr = options.includeDate && ep.air_date ? FormatUtils.formatDate(ep.air_date) : '';
+                    const directorStr = options.includeEpisodeDirector && ep.director ? FormatUtils.formatEpisodeDirector(ep.director) : '';
+                    let line = FormatUtils.formatEpisode(ep.season, ep.episode, name, options.format);
+                    line += dateStr + directorStr;
+                    if (options.useEvolution) {
+                        const evo = this.getEvolutionEmoji(index, this.episodesList);
+                        if (evo) line = evo + ' ' + line;
+                    } else if (options.emoji) {
+                        line = options.emoji + ' ' + line;
+                    }
+                    lines.push(line.trim());
+                });
             }
-            return line;
-        });
 
-        const mainTaskModal = DOMUtils.getElement('mainTaskModal');
-        const subtasksModal = DOMUtils.getElement('subtasksModal');
-        if (mainTaskModal) DOMUtils.setValue(mainTaskModal, '');
-        if (subtasksModal) DOMUtils.setValue(subtasksModal, lines.join('\n'));
+            if (subtasksModal) {
+                DOMUtils.setValue(subtasksModal, lines.join('\n'));
+            }
 
-        const mainTaskSection = DOMUtils.getElement('mainTaskSection');
-        const episodesSection = DOMUtils.getElement('episodesSection');
-        if (mainTaskSection) mainTaskSection.style.display = 'none';
-        if (episodesSection) {
-            episodesSection.style.display = 'block';
-            const h3 = episodesSection.querySelector('h3');
-            if (h3) DOMUtils.setText(h3, 'Lista de títulos');
+            const mainTaskSection = DOMUtils.getElement('mainTaskSection');
+            const episodesSection = DOMUtils.getElement('episodesSection');
+            if (mainTaskSection) mainTaskSection.style.display = 'block';
+            if (episodesSection) {
+                episodesSection.style.display = 'block';
+                const h3 = episodesSection.querySelector('h3');
+                if (h3) DOMUtils.setText(h3, 'episodios');
+            }
+            
+            this.lastGeneratedOutput = { main: mainTaskModal ? mainTaskModal.value : '', subs: subtasksModal ? subtasksModal.value : '', hasEpisodes: true };
+            
+            const outputModal = DOMUtils.getElement('outputModal');
+            if (outputModal) outputModal.classList.add('visible');
+        } finally {
+            hideGlobalLoader();
+            if (generateBtn) {
+                generateBtn.classList.remove('loading');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generar texto';
+            }
         }
-        
-        this.lastGeneratedOutput = { main: mainTaskModal ? mainTaskModal.value : '', subs: subtasksModal ? subtasksModal.value : '', hasEpisodes: false };
-        
-        const viewPreviousBtn = DOMUtils.getElement('viewPreviousBtn');
-        if (viewPreviousBtn) viewPreviousBtn.disabled = false;
-        
-        const outputModal = DOMUtils.getElement('outputModal');
-        if (outputModal) outputModal.classList.add('visible');
+    }
+
+    generateMovieList() {
+        const generateBtn = DOMUtils.getElement('generateBtn');
+        if (generateBtn) {
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generando...';
+        }
+
+        try {
+            const options = this.getCurrentOptions();
+
+            const lines = this.selectedMovies.map(movie => {
+                const title = movie.title || movie.name || 'Sin título';
+                const date = movie.release_date || movie.first_air_date || '';
+                const year = date ? date.split('-')[0] : '';
+                const rating = options.includeRating && movie.vote_average ? FormatUtils.formatRating(movie.vote_average) : '';
+                const director = options.includeDirector && movie.director ? FormatUtils.formatCreator(movie.director) : '';
+                const genre = options.includeGenre && movie.genres ? FormatUtils.formatGenre(movie.genres) : '';
+                const dateStr = options.includeDate && date ? FormatUtils.formatDate(date) : '';
+
+                const formattedTitle = FormatUtils.formatTitle(title, year, options.titleFormat);
+
+                let line = `${formattedTitle}${rating}${director}${genre}`.trim();
+                if (options.emoji) {
+                    line = `${options.emoji} ${line}`.trim();
+                }
+                if (dateStr) {
+                    line += dateStr;
+                }
+                return line;
+            });
+
+            const mainTaskModal = DOMUtils.getElement('mainTaskModal');
+            const subtasksModal = DOMUtils.getElement('subtasksModal');
+            if (mainTaskModal) DOMUtils.setValue(mainTaskModal, '');
+            if (subtasksModal) DOMUtils.setValue(subtasksModal, lines.join('\n'));
+
+            const mainTaskSection = DOMUtils.getElement('mainTaskSection');
+            const episodesSection = DOMUtils.getElement('episodesSection');
+            if (mainTaskSection) mainTaskSection.style.display = 'none';
+            if (episodesSection) {
+                episodesSection.style.display = 'block';
+                const h3 = episodesSection.querySelector('h3');
+                if (h3) DOMUtils.setText(h3, 'Lista de títulos');
+            }
+            
+            this.lastGeneratedOutput = { main: mainTaskModal ? mainTaskModal.value : '', subs: subtasksModal ? subtasksModal.value : '', hasEpisodes: false };
+            
+            const viewPreviousBtn = DOMUtils.getElement('viewPreviousBtn');
+            if (viewPreviousBtn) viewPreviousBtn.disabled = false;
+            
+            const outputModal = DOMUtils.getElement('outputModal');
+            if (outputModal) outputModal.classList.add('visible');
+        } finally {
+            if (generateBtn) {
+                generateBtn.classList.remove('loading');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generar texto';
+            }
+        }
     }
 
     viewPreviousOutput() {
@@ -1364,9 +1476,8 @@ class TodoPopcornApp {
 
     getEvolutionEmoji(index, episodes) {
         const current = episodes[index];
-        const isFirstOfSeason = index === 0 || (index > 0 && current.season !== episodes[index - 1].season);
-        if (isFirstOfSeason) return '🍿';
-        return '';
+        const isFirstOfSeason = index === 0 || current.season !== episodes[index - 1].season;
+        return isFirstOfSeason ? '🍿' : null;
     }
 }
 

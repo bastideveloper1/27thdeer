@@ -4,7 +4,7 @@
     // Rutas disponibles
     const routes = {
         '/': '/pages/index.html',
-        '/proyectos': '/proyectos/proyectos.html',
+        '/proyectos': '/pages/proyectos.html',
         '/todo_popcorn': '/pages/todo_popcorn.html'
     };
     
@@ -86,7 +86,7 @@
                     });
 
                     // Llamar a funciones de inicialización expuestas globalmente
-                    if (typeof window.initTodoPopcorn === 'function') {
+                    if (normalizedPath === '/todo_popcorn' && typeof window.initTodoPopcorn === 'function') {
                         window.initTodoPopcorn();
                     }
 
