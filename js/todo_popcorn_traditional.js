@@ -156,7 +156,7 @@ window.PreviewComponent = window.PreviewComponent || class PreviewComponent {
         this.previewElement = previewElement;
     }
 
-    update(options) {
+    update(options, language = 'en-US') {
         const {
             isTV,
             includeSE,
@@ -172,110 +172,177 @@ window.PreviewComponent = window.PreviewComponent || class PreviewComponent {
             titleFormat
         } = options;
 
-        let previewText = '';
+        let previewHTML = '';
+
+        // Nombres de episodios según idioma
+        const episodeNames = {
+            'es-ES': {
+                title: 'House',
+                ep1: 'Todo el mundo miente (Piloto)',
+                ep2: 'Paternidad',
+                ep3: 'La navaja de Occam'
+            },
+            'es-MX': {
+                title: 'Dr. House',
+                ep1: 'Todo el mundo miente',
+                ep2: 'Paternidad',
+                ep3: 'Principio de parsimonia, lo más simple es lo mejor'
+            },
+            'en-US': {
+                title: 'House',
+                ep1: 'Pilot',
+                ep2: 'Paternity',
+                ep3: "Occam's Razor"
+            }
+        };
+
+        const names = episodeNames[language] || episodeNames['en-US'];
 
         if (isTV) {
-            const year = '2023';
-            let titleText = FormatUtils.formatTitle('Goosebumps', year, titleFormat);
+            const year = '2004';
+            let titleText = FormatUtils.formatTitle(names.title, year, titleFormat);
 
             if (includeRating) {
-                titleText += FormatUtils.formatRating(8.5);
+                titleText += FormatUtils.formatRating(8.6);
             }
             if (includeDirector) {
-                titleText += FormatUtils.formatCreator('Director Nombre');
+                titleText += FormatUtils.formatCreator('David Shore');
             }
             if (includeGenre) {
-                titleText += FormatUtils.formatGenre('Género');
+                titleText += FormatUtils.formatGenre('Drama');
             }
-            previewText = titleText + '\n';
+
+            // Título principal como tarea principal
+            previewHTML += `<div class="todo-task-row"><span class="todo-checkbox todo-checkbox-main"></span><span class="todo-task-text">${this.escapeHtml(titleText)}</span></div>`;
 
             if (includeSE && includeName) {
-                let ep1 = FormatUtils.formatEpisode(1, 1, 'Primer episodio', format);
-                let ep2 = FormatUtils.formatEpisode(1, 2, 'Segundo episodio', format);
+                let ep1 = FormatUtils.formatEpisode(1, 1, names.ep1, format);
+                let ep2 = FormatUtils.formatEpisode(1, 2, names.ep2, format);
+                let ep3 = FormatUtils.formatEpisode(1, 3, names.ep3, format);
 
                 if (includeDate) {
-                    ep1 += FormatUtils.formatDate('2023-10-25');
-                    ep2 += FormatUtils.formatDate('2023-10-25');
+                    ep1 += FormatUtils.formatDate('2004-11-16');
+                    ep2 += FormatUtils.formatDate('2004-11-23');
+                    ep3 += FormatUtils.formatDate('2004-11-30');
                 }
                 if (includeEpisodeDirector) {
-                    ep1 += FormatUtils.formatEpisodeDirector('Director Nombre');
-                    ep2 += FormatUtils.formatEpisodeDirector('Director Nombre');
+                    ep1 += FormatUtils.formatEpisodeDirector('Bryan Singer');
+                    ep2 += FormatUtils.formatEpisodeDirector("Peter O'Fallon");
+                    ep3 += FormatUtils.formatEpisodeDirector('Bryan Singer');
                 }
                 if (emoji) {
                     ep1 = `${emoji} ${ep1}`;
                     ep2 = `${emoji} ${ep2}`;
+                    ep3 = `${emoji} ${ep3}`;
                 }
                 if (useEvolution) {
                     ep1 = `🍿 ${ep1}`;
                 }
 
-                previewText += ep1 + '\n' + ep2;
+                previewHTML += `<div class="todo-steps-container"><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep1)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep2)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep3)}</span></div></div>`;
             } else if (includeSE) {
                 let ep1 = FormatUtils.formatSeasonEpisode(1, 1);
                 let ep2 = FormatUtils.formatSeasonEpisode(1, 2);
+                let ep3 = FormatUtils.formatSeasonEpisode(1, 3);
                 if (includeDate) {
-                    ep1 += FormatUtils.formatDate('2023-10-25');
-                    ep2 += FormatUtils.formatDate('2023-10-25');
+                    ep1 += FormatUtils.formatDate('2004-11-16');
+                    ep2 += FormatUtils.formatDate('2004-11-23');
+                    ep3 += FormatUtils.formatDate('2004-11-30');
                 }
                 if (includeEpisodeDirector) {
-                    ep1 += FormatUtils.formatEpisodeDirector('Director Nombre');
-                    ep2 += FormatUtils.formatEpisodeDirector('Director Nombre');
+                    ep1 += FormatUtils.formatEpisodeDirector('Bryan Singer');
+                    ep2 += FormatUtils.formatEpisodeDirector("Peter O'Fallon");
+                    ep3 += FormatUtils.formatEpisodeDirector('Bryan Singer');
                 }
                 if (emoji) {
                     ep1 = `${emoji} ${ep1}`;
                     ep2 = `${emoji} ${ep2}`;
+                    ep3 = `${emoji} ${ep3}`;
                 }
                 if (useEvolution) {
                     ep1 = `🍿 ${ep1}`;
                 }
-                previewText += ep1 + '\n' + ep2;
+                previewHTML += `<div class="todo-steps-container"><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep1)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep2)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep3)}</span></div></div>`;
             } else if (includeName) {
-                let ep1 = 'Primer episodio';
-                let ep2 = 'Segundo episodio';
+                let ep1 = names.ep1;
+                let ep2 = names.ep2;
+                let ep3 = names.ep3;
                 if (includeDate) {
-                    ep1 += FormatUtils.formatDate('2023-10-25');
-                    ep2 += FormatUtils.formatDate('2023-10-25');
+                    ep1 += FormatUtils.formatDate('2004-11-16');
+                    ep2 += FormatUtils.formatDate('2004-11-23');
+                    ep3 += FormatUtils.formatDate('2004-11-30');
                 }
                 if (includeEpisodeDirector) {
-                    ep1 += FormatUtils.formatEpisodeDirector('Director Nombre');
-                    ep2 += FormatUtils.formatEpisodeDirector('Director Nombre');
+                    ep1 += FormatUtils.formatEpisodeDirector('Bryan Singer');
+                    ep2 += FormatUtils.formatEpisodeDirector("Peter O'Fallon");
+                    ep3 += FormatUtils.formatEpisodeDirector('Bryan Singer');
                 }
                 if (emoji) {
                     ep1 = `${emoji} ${ep1}`;
                     ep2 = `${emoji} ${ep2}`;
+                    ep3 = `${emoji} ${ep3}`;
                 }
                 if (useEvolution) {
                     ep1 = `🍿 ${ep1}`;
                 }
-                previewText += ep1 + '\n' + ep2;
+                previewHTML += `<div class="todo-steps-container"><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep1)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep2)}</span></div><div class="todo-step-row"><span class="todo-checkbox todo-checkbox-step"></span><span class="todo-step-text">${this.escapeHtml(ep3)}</span></div></div>`;
             } else {
-                previewText += '(Selecciona al menos "Incluir Temporada/Episodio" o "Incluir Nombre del episodio")';
+                previewHTML += `<div class="todo-task-row"><span class="todo-checkbox todo-checkbox-main"></span><span class="todo-task-text">(Selecciona al menos "Incluir Temporada/Episodio" o "Incluir Nombre del episodio")</span></div>`;
             }
         } else {
-            const year = '2023';
-            let formattedTitle = FormatUtils.formatTitle('Título', year, titleFormat);
-
-            previewText = formattedTitle;
+            // Primera película
+            const year1 = '1982';
+            let formattedTitle1 = FormatUtils.formatTitle('Blade Runner', year1, titleFormat);
 
             if (includeRating) {
-                previewText += FormatUtils.formatRating(8.5);
+                formattedTitle1 += FormatUtils.formatRating(7.9);
             }
             if (includeDirector) {
-                previewText += FormatUtils.formatCreator('Director Nombre');
+                formattedTitle1 += FormatUtils.formatCreator('Ridley Scott');
             }
             if (includeGenre) {
-                previewText += FormatUtils.formatGenre('Género');
+                formattedTitle1 += FormatUtils.formatGenre('Science Fiction, Drama, Thriller');
             }
             if (includeDate) {
-                previewText += FormatUtils.formatDate('2023-10-25');
+                formattedTitle1 += FormatUtils.formatDate('1982-06-25');
             }
             if (emoji) {
-                previewText = `${emoji} ${previewText}`;
+                formattedTitle1 = `${emoji} ${formattedTitle1}`;
             }
+
+            previewHTML += `<div class="todo-task-row"><span class="todo-checkbox todo-checkbox-main"></span><span class="todo-task-text">${this.escapeHtml(formattedTitle1)}</span></div>`;
+
+            // Segunda película
+            const year2 = '1988';
+            let formattedTitle2 = FormatUtils.formatTitle('Akira', year2, titleFormat);
+
+            if (includeRating) {
+                formattedTitle2 += FormatUtils.formatRating(7.9);
+            }
+            if (includeDirector) {
+                formattedTitle2 += FormatUtils.formatCreator('Katsuhiro Otomo');
+            }
+            if (includeGenre) {
+                formattedTitle2 += FormatUtils.formatGenre('Animation, Science Fiction, Action');
+            }
+            if (includeDate) {
+                formattedTitle2 += FormatUtils.formatDate('1988-07-15');
+            }
+            if (emoji) {
+                formattedTitle2 = `${emoji} ${formattedTitle2}`;
+            }
+
+            previewHTML += `<div class="todo-task-row"><span class="todo-checkbox todo-checkbox-main"></span><span class="todo-task-text">${this.escapeHtml(formattedTitle2)}</span></div>`;
         }
 
-        this.previewElement.textContent = previewText;
+        this.previewElement.innerHTML = previewHTML;
         this.previewElement.classList.remove('preview-placeholder');
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };
 
@@ -623,10 +690,10 @@ class TodoPopcornApp {
         const mainTaskModal = DOMUtils.getElement('mainTaskModal');
         const subtasksModal = DOMUtils.getElement('subtasksModal');
         if (copyMainBtn && mainTaskModal) {
-            DOMUtils.addEventListener(copyMainBtn, 'click', () => this.copyAndReset(mainTaskModal, 'Tarea copiada'));
+            DOMUtils.addEventListener(copyMainBtn, 'click', () => this.copyAndReset(mainTaskModal, 'Tarea copiada', copyMainBtn));
         }
         if (copySubsBtn && subtasksModal) {
-            DOMUtils.addEventListener(copySubsBtn, 'click', () => this.copyAndReset(subtasksModal, 'Subtareas copiadas'));
+            DOMUtils.addEventListener(copySubsBtn, 'click', () => this.copyAndReset(subtasksModal, 'Subtareas copiadas', copySubsBtn));
         }
 
         const tutorialPrev = DOMUtils.getElement('tutorialPrev');
@@ -669,6 +736,7 @@ class TodoPopcornApp {
         this.tmdbService.language = newLanguage;
         
         this.saveOptions();
+        this.updatePreview();
         
         // Si hay resultados visibles, volver a ejecutar doSearch() para refrescar con el nuevo idioma
         const searchInput = DOMUtils.getElement('searchInput');
@@ -772,7 +840,7 @@ class TodoPopcornApp {
 
     updatePreview() {
         const options = this.getCurrentOptions();
-        this.previewComponent.update(options);
+        this.previewComponent.update(options, this.tmdbService.language);
     }
 
     getCurrentOptions() {
@@ -1329,7 +1397,11 @@ class TodoPopcornApp {
 
             const mainTaskSection = DOMUtils.getElement('mainTaskSection');
             const episodesSection = DOMUtils.getElement('episodesSection');
-            if (mainTaskSection) mainTaskSection.style.display = 'block';
+            if (mainTaskSection) {
+                mainTaskSection.style.display = 'block';
+                const h3 = mainTaskSection.querySelector('h3');
+                if (h3) DOMUtils.setText(h3, 'Nombre de la serie');
+            }
             if (episodesSection) {
                 episodesSection.style.display = 'block';
                 const h3 = episodesSection.querySelector('h3');
@@ -1442,20 +1514,34 @@ class TodoPopcornApp {
         if (outputModal) outputModal.classList.add('visible');
     }
 
-    async copyField(field, successMessage) {
+    async copyField(field, successMessage, button = null) {
         try {
             await navigator.clipboard.writeText(field.value);
             field.select();
-            this.showAlert(successMessage);
+            if (button) {
+                button.textContent = '✓ Copiado';
+                button.style.background = 'linear-gradient(135deg, #3a8a6b, #6d3fa8)';
+                setTimeout(() => {
+                    button.textContent = button.id === 'copyMain' ? 'Copiar tarea' : 'Copiar subtareas';
+                    button.style.background = '';
+                }, 1500);
+            }
         } catch (error) {
             field.select();
             document.execCommand('copy');
-            this.showAlert(successMessage);
+            if (button) {
+                button.textContent = '✓ Copiado';
+                button.style.background = 'linear-gradient(135deg, #3a8a6b, #6d3fa8)';
+                setTimeout(() => {
+                    button.textContent = button.id === 'copyMain' ? 'Copiar tarea' : 'Copiar subtareas';
+                    button.style.background = '';
+                }, 1500);
+            }
         }
     }
 
-    async copyAndReset(field, successMessage) {
-        await this.copyField(field, successMessage);
+    async copyAndReset(field, successMessage, button = null) {
+        await this.copyField(field, successMessage, button);
         if (this.currentMode === 'multi-movies') {
             this.resetMovieSelection();
         }

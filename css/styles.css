@@ -47,11 +47,11 @@ main {
 }
 
 .subtle-nav a:hover {
-    color: #9b59b6;
+    color: #e8e6dc;
 }
 
 .subtle-nav a.active {
-    color: #9b59b6;
+    color: #e8e6dc;
     font-weight: bold;
 }
 
