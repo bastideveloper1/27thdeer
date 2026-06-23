@@ -1,0 +1,363 @@
+/* ToDo Pagos - Estilos replicados de todo_popcorn.css */
+
+.todo-pagos {
+    max-width: 960px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 0 0.5rem 0;
+    color: #e8e6dc;
+}
+
+.subtitle {
+    color: #bbb;
+    margin: 0;
+}
+
+.form-section {
+    background: #1c1c24;
+    border: 1px solid #2a2a32;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row label {
+    color: #e8e6dc;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-row input,
+.form-row select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem 1rem;
+    border: 1px solid #2a2a32;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    background: #1c1c24;
+    color: #ddd;
+}
+
+/* Eliminar flechas de inputs numéricos */
+.form-row input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.form-row input[type="number"]::-webkit-outer-spin-button,
+.form-row input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-row input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+.form-row input:focus,
+.form-row select:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: #2a2a32;
+}
+
+.action-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.generate-btn,
+.secondary-btn {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    border: none;
+}
+
+.generate-btn {
+    background: linear-gradient(135deg, #2d6a4f, #5c3597);
+    color: #fff;
+}
+
+.generate-btn:hover {
+    background: linear-gradient(135deg, #3a8a6b, #6d3fa8);
+    transform: translateY(-1px);
+}
+
+.secondary-btn {
+    background: #2c2c2a;
+    color: #e8e6dc;
+    border: 1px solid #4a4a48;
+}
+
+.secondary-btn:hover {
+    background: #3a3a38;
+    transform: translateY(-1px);
+}
+
+.preview-section {
+    background: #101014;
+    border: 1px solid #2a2a32;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.preview-section h2 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+    color: #e8e6dc;
+}
+
+#previewContent {
+    white-space: pre-wrap;
+    color: #bbb;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 100px;
+}
+
+.preview-placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.order-section {
+    margin-bottom: 1.5rem;
+}
+
+.order-section label {
+    font-weight: bold;
+    margin-right: 1rem;
+    color: #e8e6dc;
+}
+
+.order-section select {
+    padding: 0.5rem;
+    border: 1px solid #2a2a32;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    background: #1c1c24;
+    color: #ddd;
+}
+
+.output-section {
+    margin-bottom: 1.5rem;
+}
+
+.output-section .generate-btn {
+    width: 100%;
+}
+
+.history-section {
+    background: #1c1c24;
+    border: 1px solid #2a2a32;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+}
+
+.history-section h2 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+    color: #e8e6dc;
+}
+
+.history-list {
+    margin-bottom: 1rem;
+}
+
+.history-item {
+    padding: 1rem;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.history-item:hover {
+    background: #2c2c2a;
+}
+
+.history-item-title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    color: #e8e6dc;
+}
+
+.history-item-details {
+    font-size: 0.9rem;
+    color: #bbb;
+}
+
+.no-history {
+    color: #999;
+    font-style: italic;
+}
+
+.history-section .secondary-btn {
+    width: 100%;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+}
+
+.modal.visible {
+    display: flex !important;
+}
+
+.modal-content {
+    background: #1c1c24;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: min(800px, 95%);
+    width: 100%;
+    text-align: center;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #e8e6dc;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: #2c2c2a;
+}
+
+.modal-content p {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    color: #e8e6dc;
+}
+
+.modal-content button {
+    padding: 0.75rem 2rem;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2d6a4f, #5c3597);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-content button:hover {
+    background: linear-gradient(135deg, #3a8a6b, #6d3fa8);
+}
+
+.modal-content h3 {
+    color: #e8e6dc;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.output-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.output-row textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #101014;
+    border: 1px solid #2a2a32;
+    color: #bbb;
+    font-family: 'Courier New', Courier, monospace;
+    resize: vertical;
+}
+
+.output-row textarea:focus {
+    outline: none;
+    border-color: #2a2a32;
+}
+
+.output-row button {
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .todo-pagos {
+        padding: 0 0.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .form-section,
+    .history-section {
+        padding: 1rem;
+    }
+
+    .action-row {
+        flex-direction: column;
+    }
+
+    .generate-btn,
+    .secondary-btn {
+        width: 100%;
+    }
+
+    .form-row input,
+    .form-row select {
+        font-size: 0.9rem;
+    }
+}

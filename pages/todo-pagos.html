@@ -1,0 +1,98 @@
+<main>
+    <link rel="stylesheet" href="../css/todo-pagos.css">
+
+    <div class="todo-pagos">
+        <div class="page-header">
+        <h1>ToDo Pagos</h1>
+        <p class="subtitle">Generador de cuotas para pagos</p>
+    </div>
+
+    <div class="form-section">
+        <div class="form-row">
+            <label for="amount">Monto a pagar (CLP) *</label>
+            <input type="number" id="amount" min="1" max="1000000000" placeholder="Ej: 50000">
+        </div>
+
+        <div class="form-row">
+            <label for="product">Producto *</label>
+            <input type="text" id="product" maxlength="100" placeholder="Ej: Piano digital Yamaha">
+        </div>
+
+        <div class="form-row">
+            <label for="installments">Número de cuotas (1-36) *</label>
+            <input type="number" id="installments" min="1" max="36" placeholder="Ej: 6">
+        </div>
+
+        <div class="form-row">
+            <label for="store">Tienda/Servicio (opcional)</label>
+            <input type="text" id="store" maxlength="100" placeholder="Ej: Music Store Santiago">
+        </div>
+
+        <div class="form-row">
+            <label for="person">Persona que paga (opcional)</label>
+            <input type="text" id="person" maxlength="50" placeholder="Ej: Juan Pérez">
+        </div>
+
+        <div class="form-row">
+            <label for="startDate">Fecha de inicio (opcional)</label>
+            <input type="date" id="startDate">
+        </div>
+
+        <div class="form-row">
+            <label for="datePosition">Posición de fecha (opcional)</label>
+            <select id="datePosition">
+                <option value="start">Al inicio</option>
+                <option value="end">Al final</option>
+            </select>
+        </div>
+
+        <div class="action-row">
+            <button id="generateBtn" type="button" class="generate-btn">Generar cuotas</button>
+            <button id="clearBtn" type="button" class="secondary-btn">Limpiar formulario</button>
+        </div>
+    </div>
+
+    <div class="preview-section">
+        <h2>Vista previa (ejemplo)</h2>
+        <div id="previewContent" class="preview-placeholder">
+            Completa el formulario para ver un ejemplo de las cuotas
+        </div>
+    </div>
+
+    <div class="output-section">
+        <button id="copyBtn" type="button" class="generate-btn">Copiar al portapapeles</button>
+    </div>
+
+    <div class="history-section">
+        <h2>Configuraciones anteriores</h2>
+        <div id="historyList" class="history-list">
+            <p class="no-history">No hay configuraciones guardadas</p>
+        </div>
+        <button id="loadLastBtn" type="button" class="secondary-btn">Cargar última configuración</button>
+    </div>
+
+    <!-- Output Modal -->
+    <div id="outputModal" class="modal">
+        <div class="modal-content">
+            <button id="closeOutputModal" class="modal-close" type="button">×</button>
+            <div id="mainTaskSection">
+                <h3>Cuotas generadas</h3>
+                <div class="output-row">
+                    <textarea id="mainTaskModal" readonly></textarea>
+                    <button id="copyMain" type="button">Copiar cuotas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <p id="alertMessage"></p>
+            <button id="alertCloseBtn" type="button">Aceptar</button>
+        </div>
+    </div>
+    </div>
+
+    <script src="../js/todo-pagos.js"></script>
+</main>
