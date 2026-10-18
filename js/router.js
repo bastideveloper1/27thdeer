@@ -101,6 +101,10 @@
                         window.initTodoPagos();
                     }
 
+                    if (normalizedPath === '/proyectos' && typeof window.initTrayectoria === 'function') {
+                        window.initTrayectoria();
+                    }
+
                     const title = temp.querySelector('title')?.textContent || '27thDeer';
                     document.title = title;
                     

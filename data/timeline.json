@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "mindmatch",
+      "type": "project",
+      "title": "MindMatch",
+      "date": null,
+      "summary": "MindMatch es una aplicación orientada al ámbito de la salud mental que permite a los usuarios ingresar síntomas psicológicos basados en el DSM-V. A partir de esta información, la plataforma analiza los datos y presenta posibles cuadros clínicos compatibles, con el objetivo de orientar y apoyar la comprensión inicial de los síntomas, sin reemplazar la evaluación de un profesional.",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "title": "Resumen",
+          "text": "MindMatch es una aplicación orientada al ámbito de la salud mental que permite a los usuarios ingresar síntomas psicológicos basados en el DSM-V. A partir de esta información, la plataforma analiza los datos y presenta posibles cuadros clínicos compatibles, con el objetivo de orientar y apoyar la comprensión inicial de los síntomas, sin reemplazar la evaluación de un profesional."
+        }
+      ],
+      "technologies": [],
+      "skills": [],
+      "images": [
+        {
+          "src": "imgProyectos/mindmatchProyecto.png",
+          "alt": "MindMatch"
+        }
+      ],
+      "links": [
+        {
+          "title": "GitHub",
+          "url": null
+        },
+        {
+          "title": "Demo",
+          "url": null
+        }
+      ],
+      "relatedIds": [],
+      "status": "",
+      "featured": false
+    },
+    {
+      "id": "chileproyectos",
+      "type": "project",
+      "title": "ChileProyectos.cl",
+      "date": null,
+      "summary": "Participé como parte del equipo de desarrollo de ChileProyectos.cl, una plataforma digital orientada al sector de la construcción, cuyo objetivo es conectar a clientes que requieren servicios con empresas y profesionales del rubro. La plataforma permite la publicación de proyectos por parte de los clientes y la postulación de empresas o trabajadores especializados para la adjudicación de dichos trabajos.",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "title": "Resumen",
+          "text": "Participé como parte del equipo de desarrollo de ChileProyectos.cl, una plataforma digital orientada al sector de la construcción, cuyo objetivo es conectar a clientes que requieren servicios con empresas y profesionales del rubro. La plataforma permite la publicación de proyectos por parte de los clientes y la postulación de empresas o trabajadores especializados para la adjudicación de dichos trabajos."
+        }
+      ],
+      "technologies": [],
+      "skills": [],
+      "images": [
+        {
+          "src": "imgProyectos/Chileproyectos.png",
+          "alt": "ChileProyectos"
+        }
+      ],
+      "links": [
+        {
+          "title": "GitHub",
+          "url": null
+        },
+        {
+          "title": "Demo",
+          "url": null
+        }
+      ],
+      "relatedIds": [],
+      "status": "",
+      "featured": false
+    },
+    {
+      "id": "pendiente-1",
+      "type": "project",
+      "title": "Proyecto Pendiente",
+      "date": null,
+      "summary": "Pendiente.",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "title": "Resumen",
+          "text": "Pendiente."
+        }
+      ],
+      "technologies": [],
+      "skills": [],
+      "images": [
+        {
+          "src": "imgProyectos/enconstruccion.png",
+          "alt": "Proyecto Pendiente"
+        }
+      ],
+      "links": [
+        {
+          "title": "GitHub",
+          "url": null
+        },
+        {
+          "title": "Demo",
+          "url": null
+        }
+      ],
+      "relatedIds": [],
+      "status": "Pendiente",
+      "featured": false
+    },
+    {
+      "id": "pendiente-2",
+      "type": "project",
+      "title": "Proyecto Pendiente",
+      "date": null,
+      "summary": "Pendiente.",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "title": "Resumen",
+          "text": "Pendiente."
+        }
+      ],
+      "technologies": [],
+      "skills": [],
+      "images": [
+        {
+          "src": "imgProyectos/enconstruccion.png",
+          "alt": "Proyecto Pendiente"
+        }
+      ],
+      "links": [
+        {
+          "title": "GitHub",
+          "url": null
+        },
+        {
+          "title": "Demo",
+          "url": null
+        }
+      ],
+      "relatedIds": [],
+      "status": "Pendiente",
+      "featured": false
+    }
+  ]
+}
