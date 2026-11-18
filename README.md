@@ -41,7 +41,7 @@ Portafolio personal de desarrollo web con SPA (Single Page Application) usando J
 
 - **pages/proyectos.html**: Contenido de la página de proyectos. Muestra una grilla de proyectos con imágenes, descripciones y enlaces. El router inyecta este contenido en el `<main>` de index.html.
 
-- **pages/todo_popcorn.html**: Contenido de la aplicación ToDo Popcorn. Es una herramienta para generar listas de películas/series con formato personalizado. El router inyecta este contenido en el `<main>` de index.html.
+- **pages/todo_popcorn.html**: Contenido de la aplicación ToDo Popcorn. Genera JSON V1 para Arachn0de: títulos seleccionados como tareas independientes o una serie como capa con episodios ordenados como tareas. Los metadatos opcionales se guardan en description. La salida incluye vista previa y valida los límites antes de copiar; si faltan temporadas exige aceptar explícitamente la exportación incompleta. El router inyecta este contenido en el `<main>` de index.html.
 
 - **404.html**: Página de error 404 para rutas no encontradas.
 
@@ -92,3 +92,7 @@ Luego accede a `http://localhost:8000`
 ## Hosting
 
 El proyecto está diseñado para hosting estático (GitHub Pages, Netlify, etc.) sin necesidad de servidor backend.
+
+## Verificación de la exportación de ToDo Popcorn!
+
+Ejecutar `node tests/todo_popcorn.test.cjs`. Las pruebas usan el generador real sin iniciar la página ni consultar TMDB. Cubren estructura JSON, personalización, metadatos, límites del importador y aceptación de temporadas incompletas.

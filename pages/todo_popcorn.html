@@ -38,7 +38,7 @@
         <div id="options" class="options options-card">
             <div class="options-header">
                 <h3>Opciones de salida</h3>
-                <p>Configura antes de buscar y generar tu lista para Microsoft To Do.</p>
+                <p>Configura antes de buscar y generar tu lista para Arachn0de.</p>
             </div>
             <div class="option-row">
                 <label><input type="checkbox" id="optSeasonEpisode" checked /> Incluir Temporada/Episodio</label>
@@ -146,7 +146,7 @@
             <div class="action-row">
                 <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ultima búsqueda</button>
                 <button id="clearSearchBtn" type="button" class="secondary-btn">Limpiar búsqueda</button>
-                <button id="generateBtn" type="button" class="generate-btn">Generar texto</button>
+                <button id="generateBtn" type="button" class="generate-btn">Generar JSON</button>
             </div>
         </div>
 
@@ -159,23 +159,22 @@
         <div id="selectedMovies" class="selected-movies" style="display:none"></div>
         <div id="results" class="results"></div>
 
-        <!-- Modal de salida con tarea y subtareas -->
+        <!-- Salida única para Crear → Desde texto de Arachn0de -->
         <div id="outputModal" class="output-modal">
             <div class="output-modal-card">
-                <button id="closeOutputModal" class="modal-close" type="button">×</button>
-                <div id="mainTaskSection">
-                    <h3>Nombre de la serie/película</h3>
-                    <div class="output-row">
-                        <textarea id="mainTaskModal" readonly></textarea>
-                        <button id="copyMain" type="button">Copiar tarea</button>
-                    </div>
+                <button id="closeOutputModal" class="modal-close" type="button" aria-label="Cerrar">×</button>
+                <h3>Importar en Arachn0de</h3>
+                <p>Copia el JSON y pégalo en Crear → Desde texto.</p>
+                <div id="outputPreview" class="structure-preview" aria-label="Jerarquía resultante"></div>
+                <p id="jsonErrors" role="alert" style="white-space:pre-wrap"></p>
+                <div id="incompleteWarning" hidden>
+                    <p id="incompleteMessage" role="alert"></p>
+                    <label><input id="acceptIncomplete" type="checkbox"> Acepto exportar la serie incompleta</label>
                 </div>
-                <div id="episodesSection">
-                    <h3>episodios</h3>
-                    <div class="output-row">
-                        <textarea id="subtasksModal" readonly></textarea>
-                        <button id="copySubs" type="button">Copiar subtareas</button>
-                    </div>
+                <label for="jsonOutput">JSON V1</label>
+                <div class="output-row">
+                    <textarea id="jsonOutput" readonly spellcheck="false"></textarea>
+                    <button id="copyJson" type="button" disabled>Copiar JSON</button>
                 </div>
                 <div class="tmdb-credit">
                     <a href="https://www.themoviedb.org" target="_blank" rel="noopener">

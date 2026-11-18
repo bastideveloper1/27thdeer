@@ -516,12 +516,15 @@ textarea {
     border-radius: 10px;
     padding: 0.75rem;
 }
-#mainTaskModal {
-    min-height: 50px;
+#jsonOutput {
+    min-height: 240px;
 }
+#copyJson:disabled { opacity: 0.5; cursor: not-allowed; }
+.structure-preview { overflow-wrap: anywhere; }
+.structure-preview ul { padding-left: 1.5rem; }
+#jsonErrors, #incompleteMessage { color: #ffbf80; }
 .generate-btn,
-#copyMain,
-#copySubs,
+#copyJson,
 .secondary-btn,
 .instruction-next {
     padding: 0.85rem 1rem;
@@ -543,13 +546,11 @@ textarea {
     box-shadow: 0 4px 16px rgba(45, 106, 79, 0.4);
     transform: translateY(-1px);
 }
-#copyMain,
-#copySubs {
+#copyJson {
     background: linear-gradient(135deg, #2d6a4f, #5c3597);
     box-shadow: 0 2px 8px rgba(45, 106, 79, 0.3);
 }
-#copyMain:hover,
-#copySubs:hover {
+#copyJson:hover {
     background: linear-gradient(135deg, #3a8a6b, #6d3fa8);
     box-shadow: 0 4px 16px rgba(45, 106, 79, 0.4);
     transform: translateY(-1px);
@@ -987,7 +988,7 @@ textarea {
         padding: 0.4rem 0.8rem;
         min-width: 48px;
     }
-    /* Vista previa estilo Microsoft To Do - ajustes móviles */
+    /* Vista previa estilo Arachn0de - ajustes móviles */
     .todo-task-text {
         font-size: 13px;
     }
@@ -1042,7 +1043,7 @@ textarea {
     }
 }
 
-/* Vista previa estilo Microsoft To Do */
+/* Vista previa estilo Arachn0de */
 .todo-task-row {
     display: flex;
     align-items: center;
