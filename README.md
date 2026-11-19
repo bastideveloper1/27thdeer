@@ -35,11 +35,11 @@ Portafolio personal de desarrollo web con SPA (Single Page Application) usando J
 
 - **index.html**: Archivo principal de la SPA. Contiene el layout completo (navbar, footer, main vacío) y carga el router.js. Es el punto de entrada de la aplicación.
 
-- **pages/index.html**: Contenido de la página de inicio. Contiene el logo animado y el efecto typewriter con la cita de Ray Bradbury. El router inyecta este contenido en el `<main>` de index.html.
+- **pages/index.html**: Contenido de la página de inicio. Contiene el logo animado y el efecto typewriter con la cita de Ray Bradbury. El router prepara este contenido antes de sustituir el `<main>` de index.html.
 
-- **pages/proyectos.html**: Contenido de la página de proyectos. Muestra una grilla de proyectos con imágenes, descripciones y enlaces. El router inyecta este contenido en el `<main>` de index.html.
+- **pages/proyectos.html**: Contenido de la página de proyectos. Muestra una grilla de proyectos con imágenes, descripciones y enlaces. El router prepara este contenido antes de sustituir el `<main>` de index.html.
 
-- **pages/todo_popcorn.html**: Contenido de la aplicación ToDo Popcorn. Genera JSON V1 para Arachn0de: títulos seleccionados como tareas independientes o una serie como capa con episodios ordenados como tareas. Los metadatos opcionales se guardan en description. La salida incluye vista previa y valida los límites antes de copiar; si faltan temporadas exige aceptar explícitamente la exportación incompleta. El router inyecta este contenido en el `<main>` de index.html.
+- **pages/todo_popcorn.html**: Contenido de la aplicación ToDo Popcorn. Genera JSON V1 para Arachn0de: títulos seleccionados como tareas independientes o una serie como capa con episodios ordenados como tareas. Los metadatos opcionales se guardan en description. La salida incluye vista previa y valida los límites antes de copiar; si faltan temporadas exige aceptar explícitamente la exportación incompleta. El router prepara este contenido antes de sustituir el `<main>` de index.html.
 
 - **404.html**: Página de error 404 para rutas no encontradas.
 
@@ -65,8 +65,8 @@ Portafolio personal de desarrollo web con SPA (Single Page Application) usando J
 2. El router.js carga automáticamente la página según el hash de la URL (ej: `#/proyectos`)
 3. El router hace fetch del archivo HTML correspondiente en `pages/`
 4. Extrae el contenido del `<main>` y lo inyecta en el `<main>` de index.html
-5. Ejecuta los scripts incluidos en el HTML cargado
-6. Llama a funciones de inicialización expuestas globalmente (ej: `window.initTodoPopcorn`)
+5. Reutiliza el script de la sección y prepara sus datos en paralelo antes de insertar el contenido.
+6. Inserta la sección una sola vez e inicializa su contenido en el mismo turno de JavaScript. El CSS de las secciones se carga en el `<head>` de `index.html`. Las respuestas de navegaciones anteriores se descartan.
 
 ## Desarrollo
 
@@ -102,3 +102,11 @@ El selector principal actualiza la selección y sus metadatos sin perderla. Las 
 Prioridades: es-MX → es-ES → en-US; es-ES → es-MX → en-US; en-US únicamente. Cuando falta cobertura aparece una sección desplegable con disponibilidad comprobada por idioma, distribución utilizada y cobertura por temporada. Permite combinar traducciones o usar un solo idioma, sin añadir etiquetas a los títulos. Si una consulta falla, se indica que la cobertura está incompleta; si no hay un nombre real se conserva únicamente el código seleccionado, sin inventarlo.
 
 Las opciones secundarias se agrupan en un desplegable. El JSON y la jerarquía V1 permanecen iguales. Las pruebas focalizadas incluyen caché por idioma, prioridades, cobertura, respuestas tardías y regeneración del JSON.
+
+## Estabilidad visual y navegación
+
+El CSS crítico de Inicio, Trayectoria y Popcorn se carga antes de pintar contenido. Trayectoria recibe `timeline.json` ya preparado, sin mostrar una versión inicial vacía o sin estilos. El router gestiona una sola navegación por cambio de hash y reutiliza los scripts. Los fragmentos de `pages/` se utilizan desde la SPA.
+
+El contenedor principal reserva al menos un viewport y el scrollbar tiene espacio estable. El GIF de Inicio y los logos declaran su proporción; el texto del efecto de escritura define su tamaño completo antes de empezar. El contenido usa fuentes del sistema. Font Awesome solo aporta los iconos, cuyo tamaño se reserva antes de descargar la fuente.
+
+Prueba de navegador sin dependencias (Node 22+ y Chromium): iniciar `python3 -m http.server 8765 --bind 127.0.0.1`, abrir Chromium con un perfil temporal y `--remote-debugging-port=9222`, y ejecutar `node tests/layout.browser.cjs`. La prueba usa caché fría y red limitada, comprueba el primer frame, CLS, navegación, filtros, modales, respuestas tardías y reintentos en escritorio y móvil. No consulta TMDB.

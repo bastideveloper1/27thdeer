@@ -1,13 +1,37 @@
 // Router simple para SPA
 (function() {
     
-    // Rutas disponibles
+    // CSS is render-blocking in index.html; scripts and data are ready before
+    // replacing the current section, so there is only one complete first frame.
     const routes = {
-        '/': '/pages/index.html',
-        '/proyectos': '/pages/proyectos.html',
-        '/todo_popcorn': '/pages/todo_popcorn.html'
+        '/': { page: '/pages/index.html' },
+        '/proyectos': { page: '/pages/proyectos.html', script: '/js/trayectoria.js', init: 'initTrayectoria', data: '/data/timeline.json' },
+        '/todo_popcorn': { page: '/pages/todo_popcorn.html', script: '/js/todo_popcorn_traditional.js', init: 'initTodoPopcorn' }
     };
-    
+    const scripts = new Map();
+    let navigation = 0;
+
+    async function readResource(url, json = false) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('No se pudo cargar la sección.');
+        return json ? response.json() : response.text();
+    }
+
+    function loadScript(src) {
+        if (!scripts.has(src)) {
+            const promise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = () => { script.remove(); reject(new Error('No se pudo cargar la sección.')); };
+                document.head.append(script);
+            });
+            scripts.set(src, promise);
+            promise.catch(() => scripts.delete(src));
+        }
+        return scripts.get(src);
+    }
+
     function normalizeRoute(path) {
         if (!path) return '/';
         const normalized = path.replace(/^#/, '').replace(/\/$/, '') || '/';
@@ -21,97 +45,39 @@
         return normalizeRoute(window.location.pathname);
     }
 
-    // Cargar página
-    function loadPage(path) {
-        // Normalizar ruta (remover trailing slash)
-        let normalizedPath = normalizeRoute(path);
-        
-        const file = routes[normalizedPath];
-        if (!file) { window.location.hash = '/'; return; }
-        
-        fetch(file)
-            .then(res => res.text())
-            .then(html => {
-                // Extraer solo el contenido main
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                const newMain = temp.querySelector('main');
-                const currentMain = document.querySelector('main');
-                
-                if (newMain && currentMain) {
-                    currentMain.innerHTML = newMain.innerHTML;
-
-                    // Ejecutar scripts incluidos en el HTML cargado (scripts inline o con src)
-                    // Al insertar HTML con innerHTML los <script> no se ejecutan, así que los clonamos y los añadimos al body.
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        try {
-                            // Verificar si el script ya existe para evitar carga duplicada
-                            if (oldScript.src) {
-                                // Normalizar el src para comparación (convertir relativo a absoluto)
-                                const scriptSrc = new URL(oldScript.src, window.location.href).href;
-                                const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
-                                
-                                if (existingScript) {
-                                    console.log('Script ya existe, evitando carga duplicada:', scriptSrc);
-                                    return;
-                                }
-                            } else {
-                                // Para scripts inline, usar un hash del contenido como identificador
-                                const scriptContent = oldScript.textContent.trim();
-                                const scriptHash = scriptContent.substring(0, 50).replace(/\s+/g, '_');
-                                const scriptId = `inline-script-${scriptHash}`;
-                                const existingScript = document.querySelector(`script[data-script-id="${scriptId}"]`);
-                                if (existingScript) {
-                                    console.log('Script inline ya existe, evitando carga duplicada:', scriptId);
-                                    return;
-                                }
-                            }
-                            const s = document.createElement('script');
-                            if (oldScript.src) {
-                                // Usar el src normalizado
-                                s.src = new URL(oldScript.src, window.location.href).href;
-                                s.async = false;
-                            } else {
-                                s.textContent = oldScript.textContent;
-                                // Agregar identificador único para scripts inline
-                                const scriptContent = oldScript.textContent.trim();
-                                const scriptHash = scriptContent.substring(0, 50).replace(/\s+/g, '_');
-                                s.dataset.scriptId = `inline-script-${scriptHash}`;
-                            }
-                            s.dataset.routerInjected = '1';
-                            document.body.appendChild(s);
-                        } catch (e) {
-                            console.warn('Error ejecutando script inyectado', e);
-                        }
-                    });
-
-                    // Llamar a funciones de inicialización expuestas globalmente
-                    if (normalizedPath === '/todo_popcorn' && typeof window.initTodoPopcorn === 'function') {
-                        window.initTodoPopcorn();
-                    }
-
-                    if (normalizedPath === '/proyectos' && typeof window.initTrayectoria === 'function') {
-                        window.initTrayectoria();
-                    }
-
-                    const title = temp.querySelector('title')?.textContent || '27thDeer';
-                    document.title = title;
-                    
-                    // Actualizar la URL usando hash para evitar recargar rutas físicas
-                    if (window.location.hash !== '#' + normalizedPath) {
-                        window.location.hash = normalizedPath;
-                    }
-                    
-                    // Actualizar navbar activo
-                    updateActiveLink(normalizedPath);
-                    
-                    // Iniciar efectos específicos de la página (ej. typewriter)
-                    try { initTypewriter(); } catch (e) { /* no-op */ }
-                }
-            });
+    async function loadPage(path) {
+        const normalizedPath = normalizeRoute(path);
+        const route = routes[normalizedPath];
+        const current = ++navigation;
+        if (!route) { window.location.hash = '/'; return; }
+        updateActiveLink(normalizedPath);
+        document.getElementById('navigation-error')?.remove();
+        try {
+            const [html, data] = await Promise.all([
+                readResource(route.page),
+                route.data ? readResource(route.data, true) : undefined,
+                route.script ? loadScript(route.script) : undefined
+            ]);
+            if (current !== navigation) return;
+            const template = document.createElement('template');
+            template.innerHTML = html;
+            const content = template.content.querySelector('main');
+            if (!content) throw new Error('No se pudo cargar la sección.');
+            document.querySelector('main').replaceChildren(...content.childNodes);
+            // Both initializers render synchronously when their data is ready.
+            if (route.init) window[route.init](data);
+            initTypewriter();
+            document.title = '27thDeer';
+        } catch (_) {
+            if (current !== navigation) return;
+            const error = document.createElement('p');
+            error.id = 'navigation-error';
+            error.setAttribute('role', 'alert');
+            error.textContent = 'No se pudo cargar la sección. Pulsa su enlace para reintentar.';
+            document.querySelector('main').before(error);
+        }
     }
-    
+
     // Exponer utilidades globales para que los index.html de las subcarpetas puedan usarlas
     window.loadPage = loadPage;
     window.getCurrentRoute = getCurrentRoute;
@@ -141,30 +107,42 @@
         // separar en frases por puntuación (manteniendo el signo)
         const sentences = raw.match(/[^.!?]+[.!?]*/g) || [raw];
 
-        container.innerHTML = '';
-        for (let s = 0; s < sentences.length; s++) {
-            const sentence = sentences[s].trim();
-            const p = document.createElement('span');
-            p.className = 'type-line';
-            container.appendChild(p);
-
-            p.classList.add('active');
-            for (let i = 1; i <= sentence.length; i++) {
-                p.textContent = sentence.slice(0, i);
-                await sleep(100 + Math.random() * 80); // más lento por carácter (160-240ms)
+        container.replaceChildren();
+        // Full text defines the responsive geometry. Only the existing writing
+        // effect is painted on top; adding characters never changes layout.
+        const lines = sentences.map(sentence => {
+            const line = document.createElement('span');
+            line.className = 'type-line';
+            const reserve = document.createElement('span');
+            reserve.className = 'type-line-reserve';
+            reserve.textContent = sentence.trim();
+            const typed = document.createElement('span');
+            typed.className = 'type-line-typed';
+            typed.setAttribute('aria-hidden', 'true');
+            line.append(reserve, typed);
+            container.append(line);
+            return { line, typed, text: reserve.textContent };
+        });
+        const author = document.createElement('span');
+        author.className = 'author type-author-pending';
+        author.textContent = container.dataset.author || '- Crónicas Marcianas, Ray Bradbury';
+        container.append(author);
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        for (const { line, typed, text } of lines) {
+            if (!container.isConnected) return;
+            line.classList.add('active');
+            for (let i = 1; i <= text.length; i++) {
+                if (!container.isConnected) return;
+                typed.textContent = text.slice(0, i);
+                if (!reducedMotion) await sleep(100 + Math.random() * 80);
             }
-            p.classList.remove('active');
-            await sleep(1500 + Math.random() * 500); // pausa entre frases (1.5-2s)
+            line.classList.remove('active');
+            if (!reducedMotion) await sleep(1500 + Math.random() * 500);
         }
-
-        // mostrar autor si existe originalmente
-        await sleep(3000);
-        const authorSpan = document.createElement('span');
-        authorSpan.className = 'author';
-        authorSpan.textContent = container.dataset.author || '- Crónicas Marcianas, Ray Bradbury';
-        container.appendChild(authorSpan);
+        if (!reducedMotion) await sleep(3000);
+        author.classList.remove('type-author-pending');
     }
-    
+
     // Actualizar link activo en navbar
     function updateActiveLink(activePath) {
         // Quitar clase active de todos los links
@@ -193,13 +171,18 @@
                 // Solo procesar rutas limpias (empiezan con / o #/)
                 if ((href.startsWith('#/') || (href.startsWith('/') && !href.endsWith('.html')))) {
                     e.preventDefault();
-                    loadPage(routePath);
+                    const normalized = normalizeRoute(routePath);
+                    if (window.location.hash === '#' + normalized) {
+                        if (document.getElementById('navigation-error')) loadPage(normalized);
+                    } else window.location.hash = normalized;
                 }
             });
         });
 
         // Cargar la página inicial según el hash o la ruta actual
-        loadPage(getCurrentRoute());
+        const initial = getCurrentRoute();
+        history.replaceState(null, '', '#' + initial);
+        loadPage(initial);
     });
     
 })();

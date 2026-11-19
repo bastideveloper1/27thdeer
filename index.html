@@ -8,9 +8,10 @@
     <link rel="icon" href="/img/mini-icon.png" type="image/png">
     <link rel="shortcut icon" href="/img/mini-icon.png" type="image/png">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/trayectoria.css">
+    <link rel="stylesheet" href="css/todo_popcorn.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="js/router.js"></script>
+    <script src="js/router.js" defer></script>
 </head>
 
 <body>
@@ -33,14 +34,5 @@
         <p class="footer-text">© 2025 27thDeer.<br>
         Contacto bastian@27thdeer.com </p>
     </footer>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!window.location.hash) {
-                window.location.hash = '/';
-                return;
-            }
-            loadPage(getCurrentRoute());
-        });
-    </script>
 </body>
 </html>

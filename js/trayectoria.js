@@ -42,7 +42,7 @@
         if (url) {el.href = url; el.target = '_blank'; el.rel = 'noopener noreferrer';}
         return el;
     }
-    window.initTrayectoria = async function () {
+    window.initTrayectoria = async function (data) {
         const root = document.querySelector('.trajectory');
         if (!root || root.dataset.ready) return;
         root.dataset.ready = 'true';
@@ -187,13 +187,14 @@
             render();
         });
         try {
-            const response = await fetch(new URL('data/timeline.json', document.baseURI));
-            if (!response.ok) throw new Error('No se pudo cargar la trayectoria');
-            const data = await response.json();
+            if (!data) {
+                const response = await fetch(new URL('data/timeline.json', document.baseURI));
+                if (!response.ok) throw new Error('No se pudo cargar la trayectoria');
+                data = await response.json();
+            }
             if (data.version !== 1 || !Array.isArray(data.entries)) throw new Error('Formato de trayectoria incorrecto');
             entries = data.entries.filter(entry => entry.id && entry.title && labels[entry.type]).sort((a,b) => (b.date || '').localeCompare(a.date || ''));
             if (root.isConnected) render();
         } catch (_) {message.hidden = false; message.textContent = 'No se pudo cargar la trayectoria. Vuelve a abrir Proyectos para intentarlo de nuevo.';}
     };
-    window.initTrayectoria();
 })();

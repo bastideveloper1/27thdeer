@@ -2,6 +2,8 @@
 
 /* Contenedor principal y cabecera de la página */
 .todo-popcorn {
+    width: 100%;
+    box-sizing: border-box;
     max-width: 960px;
     margin: 1.5rem auto;
     text-align: left;
