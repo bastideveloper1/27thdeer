@@ -51,45 +51,59 @@
         const dialog = root.querySelector('dialog');
         const detail = root.querySelector('.trajectory-detail');
         let entries = [], selected = 'all', opener;
-        const navigation = root.querySelector('.trajectory-navigation');
         const progress = root.querySelector('.trajectory-progress');
-        const desktop = window.matchMedia('(min-width:769px)');
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        function updateNavigation() {
-            const max = Math.max(0, list.scrollWidth - list.clientWidth);
-            navigation.querySelector('[data-direction="-1"]').disabled = list.scrollLeft <= 2;
-            navigation.querySelector('[data-direction="1"]').disabled = list.scrollLeft >= max - 2;
+        const timelinePulse = node('span', '', 'trajectory-axis-pulse');
+        timelinePulse.setAttribute('aria-hidden', 'true');
+        let pulsePoints = [], pulseStart = null;
+        function updatePulseGeometry() {
+            const rows = Array.from(list.querySelectorAll('.trajectory-entry'));
+            if (!rows.length) {pulsePoints = []; return;}
+            list.append(timelinePulse);
             const bounds = list.getBoundingClientRect();
-            const distance = desktop.matches ? max : Math.max(0, bounds.bottom + window.scrollY - window.innerHeight);
-            const position = desktop.matches ? list.scrollLeft : window.scrollY;
+            pulsePoints = rows.map(row => {
+                const rect = row.getBoundingClientRect();
+                const marker = getComputedStyle(row, '::before');
+                return {row, x:rect.left - bounds.left + list.scrollLeft + parseFloat(marker.left) + parseFloat(marker.width) / 2, y:rect.top - bounds.top + list.scrollTop + parseFloat(marker.top) + parseFloat(marker.height) / 2};
+            });
+            pulseStart = null;
+        }
+        function animateTimeline(time) {
+            if (!root.isConnected) return;
+            timelinePulse.hidden = reducedMotion.matches || !pulsePoints.length || dialog.open;
+            if (!timelinePulse.hidden) {
+                if (pulseStart === null) pulseStart = time;
+                const duration = Math.max(6000, pulsePoints.length * 1800);
+                const progress = ((time - pulseStart) % duration) / duration;
+                const position = progress * Math.max(1, pulsePoints.length - 1);
+                const index = Math.min(Math.floor(position), pulsePoints.length - 1);
+                const from = pulsePoints[index], to = pulsePoints[Math.min(index + 1, pulsePoints.length - 1)];
+                const fraction = position - index;
+                timelinePulse.style.left = (from.x + (to.x - from.x) * fraction) + 'px';
+                timelinePulse.style.top = (from.y + (to.y - from.y) * fraction) + 'px';
+                pulsePoints.forEach((point, i) => point.row.classList.toggle('trajectory-node-lit', Math.abs(position - i) < .12));
+            } else {
+                pulsePoints.forEach(point => point.row.classList.remove('trajectory-node-lit'));
+            }
+            requestAnimationFrame(animateTimeline);
+        }
+        requestAnimationFrame(animateTimeline);
+
+        function updateNavigation() {
+            const bounds = list.getBoundingClientRect();
+            const distance = Math.max(0, bounds.bottom + window.scrollY - window.innerHeight);
+            const position = window.scrollY;
             const fraction = distance > 0 ? Math.max(0, Math.min(1, position / distance)) : 1;
             progress.setAttribute('aria-valuenow', String(Math.round(fraction * 100)));
             progress.firstElementChild.style.transform = `scaleX(${fraction})`;
         }
-        function move(direction) {
-            list.scrollBy({left: direction * list.clientWidth * .85, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
-        }
-        navigation.querySelectorAll('[data-direction]').forEach(button => {
-            button.onclick = () => move(Number(button.dataset.direction));
-        });
-        list.addEventListener('keydown', event => {
-            if (!desktop.matches || event.target !== list) return;
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                event.preventDefault();
-                move(event.key === 'ArrowLeft' ? -1 : 1);
-            } else if (event.key === 'Home' || event.key === 'End') {
-                event.preventDefault();
-                list.scrollTo({left: event.key === 'Home' ? 0 : list.scrollWidth, behavior: 'instant'});
-            }
-        });
-        list.addEventListener('scroll', updateNavigation, {passive:true});
         function onPageScroll() {
             if (!root.isConnected) {
                 window.removeEventListener('scroll', onPageScroll);
                 window.removeEventListener('resize', onPageScroll);
                 return;
             }
-            if (!desktop.matches) updateNavigation();
+            updateNavigation();
         }
         window.addEventListener('scroll', onPageScroll, {passive:true});
         window.addEventListener('resize', onPageScroll);
@@ -101,6 +115,7 @@
                 return;
             }
             updateNavigation();
+            updatePulseGeometry();
         });
         resizeObserver.observe(list);
 
@@ -152,6 +167,7 @@
                 row.append(date, card); list.append(row);
             });
             updateNavigation();
+            updatePulseGeometry();
         }
         root.querySelectorAll('[data-filter]').forEach(button => button.onclick = () => {
             selected = button.dataset.filter;

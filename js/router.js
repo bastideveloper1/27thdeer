@@ -146,12 +146,12 @@
     // Actualizar link activo en navbar
     function updateActiveLink(activePath) {
         // Quitar clase active de todos los links
-        document.querySelectorAll('.subtle-nav a').forEach(link => {
+        document.querySelectorAll('.subtle-nav a, .trajectory-link').forEach(link => {
             link.classList.remove('active');
         });
         
         // Agregar clase active al link correspondiente
-        document.querySelectorAll('.subtle-nav a').forEach(link => {
+        document.querySelectorAll('.subtle-nav a, .trajectory-link').forEach(link => {
             const href = link.getAttribute('href');
             if (href === activePath || href === '#' + activePath) {
                 link.classList.add('active');
@@ -161,7 +161,7 @@
     
     // Inicializar clicks
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.subtle-nav a').forEach(link => {
+        document.querySelectorAll('.subtle-nav a, .trajectory-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
                 

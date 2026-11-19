@@ -801,3 +801,7 @@ h1 {
 /* Reserve the scrollbar and icon geometry before content/font downloads. */
 html { scrollbar-gutter: stable; }
 .social-icon { display: inline-flex; width: 1em; height: 1em; align-items: center; justify-content: center; }
+
+.trajectory-link { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; margin-top: 12px; color: #666; text-decoration: none; }
+.trajectory-link:hover, .trajectory-link.active { color: #aaa; }
+.trajectory-link:focus-visible { outline: 1px solid #aaa; outline-offset: 2px; border-radius: 6px; }
