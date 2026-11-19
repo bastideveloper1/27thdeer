@@ -9,10 +9,13 @@
             </div>
         </div>
         <p class="trajectory-message" role="status">Cargando trayectoria…</p>
-        <ol id="trajectory-line" class="trajectory-line" aria-label="Línea temporal"></ol>
+        <ol id="trajectory-line" class="trajectory-line" aria-label="Línea temporal; desplázate para recorrerla" tabindex="0"></ol>
         <div class="trajectory-navigation" role="group" aria-label="Recorrer trayectoria">
-            <button type="button" data-direction="-1" aria-controls="trajectory-line">← Anterior</button>
-            <button type="button" data-direction="1" aria-controls="trajectory-line">Siguiente →</button>
+            <button type="button" data-direction="-1" aria-controls="trajectory-line" aria-label="Anterior" title="Anterior">←</button>
+            <div class="trajectory-progress" role="progressbar" aria-label="Desplazamiento de la línea temporal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-controls="trajectory-line">
+                <span></span>
+            </div>
+            <button type="button" data-direction="1" aria-controls="trajectory-line" aria-label="Siguiente" title="Siguiente">→</button>
         </div>
         <dialog class="trajectory-dialog" aria-labelledby="trajectory-detail-title">
             <button type="button" class="trajectory-close" aria-label="Cerrar detalle">×</button>

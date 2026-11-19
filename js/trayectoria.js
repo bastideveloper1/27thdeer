@@ -52,86 +52,57 @@
         const detail = root.querySelector('.trajectory-detail');
         let entries = [], selected = 'all', opener;
         const navigation = root.querySelector('.trajectory-navigation');
-        const svgNS = 'http://www.w3.org/2000/svg';
-        const connectors = document.createElementNS(svgNS, 'svg');
-        connectors.classList.add('trajectory-connectors');
-        connectors.setAttribute('aria-hidden', 'true');
-        root.prepend(connectors);
-        function updateConnectors() {
-            connectors.replaceChildren();
-            if (!window.matchMedia('(min-width:769px)').matches) return;
-            const navLink = document.querySelector('.subtle-nav a[href="#/proyectos"]');
-            if (!navLink) return;
-            const origin = root.getBoundingClientRect();
-            const nav = navLink.getBoundingClientRect();
-            const startX = nav.left + nav.width / 2 - origin.left;
-            const startY = nav.bottom - origin.top + 6;
-            const buttons = Array.from(root.querySelectorAll('[data-filter]'));
-            const targets = buttons.map(button => {
-                const rect = button.getBoundingClientRect();
-                return {x:rect.left + rect.width / 2 - origin.left, y:rect.top - origin.top - 4};
-            });
-            const branchY = targets[0].y - 8;
-            const path = document.createElementNS(svgNS, 'path');
-            path.setAttribute('d', `M ${startX} ${startY} V ${branchY} H ${targets[0].x} M ${startX} ${branchY} H ${targets[targets.length - 1].x} ` + targets.map(target => `M ${target.x} ${branchY} V ${target.y}`).join(' '));
-            connectors.append(path);
-
-        }
-
-        const timelinePulse = node('span', '', 'trajectory-axis-pulse');
-        timelinePulse.setAttribute('aria-hidden', 'true');
+        const progress = root.querySelector('.trajectory-progress');
+        const desktop = window.matchMedia('(min-width:769px)');
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        let pulsePoints = [], pulseStart = null;
-        function updatePulseGeometry() {
-            const rows = Array.from(list.querySelectorAll('.trajectory-entry'));
-            if (!rows.length) {pulsePoints = []; return;}
-            list.append(timelinePulse);
-            const bounds = list.getBoundingClientRect();
-            const horizontal = window.matchMedia('(min-width:769px)').matches;
-            pulsePoints = rows.map(row => {
-                const rect = row.getBoundingClientRect();
-                return {row, x:rect.left - bounds.left + list.scrollLeft + (horizontal ? 6 : 7), y:rect.top - bounds.top + list.scrollTop + (horizontal ? rect.height / 2 : 13)};
-            });
-            pulseStart = null;
-        }
-        function animateTimeline(time) {
-            if (!root.isConnected) return;
-            timelinePulse.hidden = reducedMotion.matches || !pulsePoints.length || dialog.open;
-            if (!timelinePulse.hidden) {
-                if (pulseStart === null) pulseStart = time;
-                const duration = Math.max(6000, pulsePoints.length * 1800);
-                const progress = ((time - pulseStart) % duration) / duration;
-                const position = progress * Math.max(1, pulsePoints.length - 1);
-                const index = Math.min(Math.floor(position), pulsePoints.length - 1);
-                const from = pulsePoints[index], to = pulsePoints[Math.min(index + 1, pulsePoints.length - 1)];
-                const fraction = position - index;
-                timelinePulse.style.left = (from.x + (to.x - from.x) * fraction) + 'px';
-                timelinePulse.style.top = (from.y + (to.y - from.y) * fraction) + 'px';
-                pulsePoints.forEach((point, i) => point.row.classList.toggle('trajectory-node-lit', Math.abs(position - i) < .12));
-            } else {
-                pulsePoints.forEach(point => point.row.classList.remove('trajectory-node-lit'));
-            }
-            requestAnimationFrame(animateTimeline);
-        }
-        requestAnimationFrame(animateTimeline);
-
         function updateNavigation() {
-            const max = list.scrollWidth - list.clientWidth;
+            const max = Math.max(0, list.scrollWidth - list.clientWidth);
             navigation.querySelector('[data-direction="-1"]').disabled = list.scrollLeft <= 2;
             navigation.querySelector('[data-direction="1"]').disabled = list.scrollLeft >= max - 2;
+            const bounds = list.getBoundingClientRect();
+            const distance = desktop.matches ? max : Math.max(0, bounds.bottom + window.scrollY - window.innerHeight);
+            const position = desktop.matches ? list.scrollLeft : window.scrollY;
+            const fraction = distance > 0 ? Math.max(0, Math.min(1, position / distance)) : 1;
+            progress.setAttribute('aria-valuenow', String(Math.round(fraction * 100)));
+            progress.firstElementChild.style.transform = `scaleX(${fraction})`;
+        }
+        function move(direction) {
+            list.scrollBy({left: direction * list.clientWidth * .85, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
         }
         navigation.querySelectorAll('[data-direction]').forEach(button => {
-            button.onclick = () => list.scrollBy({left: Number(button.dataset.direction) * list.clientWidth, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+            button.onclick = () => move(Number(button.dataset.direction));
+        });
+        list.addEventListener('keydown', event => {
+            if (!desktop.matches || event.target !== list) return;
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                move(event.key === 'ArrowLeft' ? -1 : 1);
+            } else if (event.key === 'Home' || event.key === 'End') {
+                event.preventDefault();
+                list.scrollTo({left: event.key === 'Home' ? 0 : list.scrollWidth, behavior: 'instant'});
+            }
         });
         list.addEventListener('scroll', updateNavigation, {passive:true});
+        function onPageScroll() {
+            if (!root.isConnected) {
+                window.removeEventListener('scroll', onPageScroll);
+                window.removeEventListener('resize', onPageScroll);
+                return;
+            }
+            if (!desktop.matches) updateNavigation();
+        }
+        window.addEventListener('scroll', onPageScroll, {passive:true});
+        window.addEventListener('resize', onPageScroll);
         const resizeObserver = new ResizeObserver(() => {
-            if (!root.isConnected) { resizeObserver.disconnect(); return; }
+            if (!root.isConnected) {
+                resizeObserver.disconnect();
+                window.removeEventListener('scroll', onPageScroll);
+                window.removeEventListener('resize', onPageScroll);
+                return;
+            }
             updateNavigation();
-            updateConnectors();
-            updatePulseGeometry();
         });
         resizeObserver.observe(list);
-        resizeObserver.observe(root.querySelector('.trajectory-toolbar'));
 
         dialog.querySelector('.trajectory-close').onclick = () => dialog.close();
         dialog.addEventListener('click', event => {if (event.target === dialog) {const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close();}});
@@ -168,7 +139,8 @@
             message.textContent = 'Todavía no hay entradas en esta categoría.';
             filtered.forEach(entry => {
                 const row = node('li', '', 'trajectory-entry');
-                const date = node('div', dateLabel(entry.date), 'trajectory-date');
+                const date = node('time', dateLabel(entry.date), 'trajectory-date');
+                if (entry.date && /^\d{4}(-\d{2}(-\d{2})?)?$/.test(entry.date)) date.setAttribute('datetime', entry.date);
                 const card = node('button', '', 'trajectory-card'); card.type = 'button'; card.setAttribute('aria-haspopup', 'dialog'); card.setAttribute('aria-label', 'Ver detalle de ' + entry.title);
                 const body = node('div'); body.append(node('h2', entry.title));
                 body.append(node('span', 'Explorar ↗', 'trajectory-open'));
@@ -179,7 +151,7 @@
                 card.onclick = () => show(entry, card);
                 row.append(date, card); list.append(row);
             });
-            requestAnimationFrame(() => { updateNavigation(); updatePulseGeometry(); });
+            updateNavigation();
         }
         root.querySelectorAll('[data-filter]').forEach(button => button.onclick = () => {
             selected = button.dataset.filter;
