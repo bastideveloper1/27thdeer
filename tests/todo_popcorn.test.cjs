@@ -162,7 +162,6 @@ test('real names, regional priority and availability differ from used translatio
 
 test('TMDB cache shares in-flight requests, separates languages and retries failures', async () => {
     const service = new TMDBService();
-    service.apiKey = 'fixture';
     let calls = 0;
     context.fetch = async () => { calls++; return { ok: true, json: async () => ({ episodes: [] }) }; };
     await Promise.all([service.getSeasonDetails(1, 1, 'es-MX'), service.getSeasonDetails(1, 1, 'es-MX')]);
@@ -215,4 +214,35 @@ test('changing coverage choice regenerates JSON without adding language labels o
     assert.equal(JSON.parse(element('jsonOutput').value).items[0].children[0].title, 'T01|E01 - Nombre real');
     app.changeTitleLanguage('es-MX');
     assert.equal(JSON.parse(element('jsonOutput').value).items[0].children[0].title, 'T01|E01');
+});
+
+
+test('all TMDB endpoints use the proxy, preserve parameters and send no credentials', async () => {
+    const service = new TMDBService();
+    const requests = [];
+    context.fetch = async (url, init) => {
+        requests.push({ url: new URL(url), init });
+        return { ok: true, json: async () => ({ results: [], episodes: [] }) };
+    };
+    await service.searchMulti('Goosebumps & terror', 'es-MX');
+    await service.getTVDetails(5835, 'es-ES');
+    await service.getTVCredits(5835, 'en-US');
+    await service.getSeasonDetails(5835, 1, 'es-MX');
+    await service.getEpisodeCredits(5835, 1, 1, 'en-US');
+    await service.getMovieDetails(550, 'es-ES');
+    await service.getMovieCredits(550, 'en-US');
+    assert.deepEqual(requests.map(r => r.url.pathname), [
+        '/3/search/multi', '/3/tv/5835', '/3/tv/5835/credits',
+        '/3/tv/5835/season/1', '/3/tv/5835/season/1/episode/1/credits',
+        '/3/movie/550', '/3/movie/550/credits'
+    ]);
+    for (const { url, init } of requests) {
+        assert.equal(url.origin, 'https://tmdb-proxy.bastianenrique-contacto.workers.dev');
+        assert.deepEqual([...url.searchParams.keys()].sort(), url.pathname.endsWith('/search/multi')
+            ? ['include_adult', 'language', 'query'] : ['language']);
+        assert.equal(init, undefined);
+    }
+    assert.equal(requests[0].url.searchParams.get('query'), 'Goosebumps & terror');
+    assert.equal(requests[0].url.searchParams.get('include_adult'), 'false');
+    assert.deepEqual(requests.map(r => r.url.searchParams.get('language')), ['es-MX', 'es-ES', 'en-US', 'es-MX', 'en-US', 'es-ES', 'en-US']);
 });

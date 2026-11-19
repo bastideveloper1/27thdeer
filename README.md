@@ -16,9 +16,7 @@ Portafolio personal de desarrollo web con SPA (Single Page Application) usando J
 │   └── todo_popcorn.css    # Estilos específicos para ToDo Popcorn
 ├── js/                     # Archivos JavaScript
 │   ├── router.js           # Router SPA para navegación sin recarga
-│   ├── todo_popcorn_traditional.js  # Aplicación ToDo Popcorn (JS tradicional)
-│   └── config/             # Configuración centralizada
-│       └── config.js       # Configuración de API TMDB y storage
+│   └── todo_popcorn_traditional.js  # Aplicación ToDo Popcorn (JS tradicional)
 ├── pages/                  # Contenido de páginas para el router
 │   ├── index.html          # Página de inicio (contenido)
 │   ├── proyectos.html      # Página de proyectos (contenido)
@@ -59,7 +57,7 @@ Portafolio personal de desarrollo web con SPA (Single Page Application) usando J
 
 ### Configuración
 
-- **js/config/config.js**: Configuración centralizada para la aplicación ToDo Popcorn. Incluye la API key de TMDB, URLs base, y claves de localStorage.
+- **ToDo Popcorn!**: La configuración pública está en `js/todo_popcorn_traditional.js`. Las consultas usan `https://tmdb-proxy.bastianenrique-contacto.workers.dev/3`; la autenticación reside exclusivamente en el secreto `TMDB_TOKEN` del Worker. El frontend no envía credenciales. Los pósteres siguen cargándose desde el CDN público `image.tmdb.org`.
 
 ## Cómo Funciona la SPA
 

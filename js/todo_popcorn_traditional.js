@@ -2,9 +2,9 @@
 // Configuración centralizada
 const todoPopcornConfig = {
     tmdb: {
-        apiKey: 'df600a328fa6b72a4d012a0ef3ab14a6',
+
         imageBase: 'https://image.tmdb.org/t/p/w300',
-        baseURL: 'https://api.themoviedb.org/3',
+        baseURL: 'https://tmdb-proxy.bastianenrique-contacto.workers.dev/3',
         language: 'es-ES'
     },
     storage: {
@@ -311,7 +311,6 @@ const TitleLanguages = {
 // Servicio para interactuar con la API de TMDB
 class TMDBService {
     constructor() {
-        this.apiKey = todoPopcornConfig.tmdb.apiKey;
         this.baseURL = todoPopcornConfig.tmdb.baseURL;
         this.imageBase = todoPopcornConfig.tmdb.imageBase;
         this.language = todoPopcornConfig.tmdb.language;
@@ -324,7 +323,7 @@ class TMDBService {
         const cacheKey = `${path}?${query}`;
         if (!this.cache.has(cacheKey)) {
             const pending = (async () => {
-                const res = await fetch(`${this.baseURL}/${path}?api_key=${this.apiKey}&${query}`);
+                const res = await fetch(`${this.baseURL}/${path}?${query}`);
                 if (!res.ok) throw new Error(`TMDB: respuesta ${res.status}`);
                 return res.json();
             })();
