@@ -278,6 +278,36 @@ window.ModalComponent = window.ModalComponent || class ModalComponent {
     }
 }
 
+// Names are taken verbatim from TMDB. Generic numbered placeholders are not translations.
+const TitleLanguages = {
+    labels: { 'es-MX': 'Español latino', 'es-ES': 'Español de España', 'en-US': 'Inglés' },
+    priority(language) {
+        return language === 'en-US' ? ['en-US'] : [language, language === 'es-MX' ? 'es-ES' : 'es-MX', 'en-US'];
+    },
+    real(name) {
+        const value = (name || '').trim();
+        return Boolean(value) && !/^(?:(?:episode|episodio|cap[ií]tulo|temporada|season|t[ií]tulo|title)\s*(?:n[.º°o]*\s*)?\d*|(?:sin t[ií]tulo|untitled|tba|tbd)|[st]\d+\s*[| -]?\s*e\d+)$/iu.test(value);
+    },
+    resolve(rows, language, choice = 'mix') {
+        const priority = choice === 'mix' ? this.priority(language) : [choice];
+        return rows.map(row => {
+            const usedLanguage = priority.find(lang => this.real(row.names[lang]));
+            return { ...row, name: usedLanguage ? row.names[usedLanguage].trim() : '', usedLanguage };
+        });
+    },
+    coverage(rows, language, choice = 'mix') {
+        const resolved = this.resolve(rows, language, choice);
+        const total = rows.length;
+        const available = Object.fromEntries(Object.keys(this.labels).map(lang => [lang, rows.filter(row => this.real(row.names[lang])).length]));
+        const used = Object.fromEntries(Object.keys(this.labels).map(lang => [lang, resolved.filter(row => row.usedLanguage === lang).length]));
+        const seasons = [...new Set(rows.map(row => row.season))].map(season => {
+            const group = rows.filter(row => row.season === season);
+            return { season, total: group.length, available: group.filter(row => this.real(row.names[language])).length };
+        });
+        return { total, available, used, seasons, missing: resolved.filter(row => !row.usedLanguage).length };
+    }
+};
+
 // Servicio para interactuar con la API de TMDB
 class TMDBService {
     constructor() {
@@ -285,66 +315,89 @@ class TMDBService {
         this.baseURL = todoPopcornConfig.tmdb.baseURL;
         this.imageBase = todoPopcornConfig.tmdb.imageBase;
         this.language = todoPopcornConfig.tmdb.language;
+        this.cache = new Map();
     }
 
-    async searchMulti(query) {
-        const url = `${this.baseURL}/search/multi?api_key=${this.apiKey}&language=${this.language}&query=${encodeURIComponent(query)}&include_adult=false`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
-        const data = await res.json();
+    // Share in-flight requests as well as responses. Capture language before the first await.
+    request(path, language = this.language, params = {}) {
+        const query = new URLSearchParams({ language, ...params }).toString();
+        const cacheKey = `${path}?${query}`;
+        if (!this.cache.has(cacheKey)) {
+            const pending = (async () => {
+                const res = await fetch(`${this.baseURL}/${path}?api_key=${this.apiKey}&${query}`);
+                if (!res.ok) throw new Error(`TMDB: respuesta ${res.status}`);
+                return res.json();
+            })();
+            this.cache.set(cacheKey, pending);
+            pending.catch(() => { if (this.cache.get(cacheKey) === pending) this.cache.delete(cacheKey); });
+            if (this.cache.size > 200) this.cache.delete(this.cache.keys().next().value);
+        }
+        return this.cache.get(cacheKey);
+    }
+
+    async searchMulti(query, language = this.language) {
+        const data = await this.request('search/multi', language, { query, include_adult: 'false' });
         return data.results || [];
     }
+    getTVDetails(id, language = this.language) { return this.request(`tv/${id}`, language); }
+    getTVCredits(id, language = this.language) { return this.request(`tv/${id}/credits`, language); }
+    getSeasonDetails(id, season, language = this.language) { return this.request(`tv/${id}/season/${season}`, language); }
+    getEpisodeCredits(id, season, episode, language = this.language) { return this.request(`tv/${id}/season/${season}/episode/${episode}/credits`, language); }
+    getMovieDetails(id, language = this.language) { return this.request(`movie/${id}`, language); }
+    getMovieCredits(id, language = this.language) { return this.request(`movie/${id}/credits`, language); }
 
-    async getTVDetails(id) {
-        const url = `${this.baseURL}/tv/${id}?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener detalles de TV: ' + res.status);
-        return await res.json();
+    async localizeItem(item, language = this.language) {
+        const isTV = item.media_type === 'tv' || (!item.title && item.name);
+        const details = await (isTV ? this.getTVDetails(item.id, language) : this.getMovieDetails(item.id, language));
+        const field = isTV ? 'name' : 'title';
+        let title = details[field];
+        if (!TitleLanguages.real(title)) {
+            for (const fallback of TitleLanguages.priority(language).slice(1)) {
+                const alternative = await (isTV ? this.getTVDetails(item.id, fallback) : this.getMovieDetails(item.id, fallback));
+                if (TitleLanguages.real(alternative[field])) { title = alternative[field]; break; }
+            }
+        }
+        const director = isTV ? await this.getTVCreator(item.id, language) : await this.getMovieCreator(item.id, language);
+        return { ...item, ...details, [field]: TitleLanguages.real(title) ? title : '',
+            media_type: isTV ? 'tv' : 'movie', director, genres: (details.genres || []).map(g => g.name).join(', ') };
     }
 
-    async getTVCredits(id) {
-        const url = `${this.baseURL}/tv/${id}/credits?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener créditos de TV: ' + res.status);
-        return await res.json();
+    async seasonTitles(id, seasons, language = this.language) {
+        const rows = [];
+        const failedSeasons = [];
+        const unavailable = [];
+        // One response per season/language, reused for names, dates and episode crew.
+        for (const season of seasons.filter(s => s.season_number > 0)) {
+            const number = season.season_number;
+            const languages = Object.keys(TitleLanguages.labels);
+            const responses = await Promise.allSettled(languages.map(lang => this.getSeasonDetails(id, number, lang)));
+            const byEpisode = new Map();
+            responses.forEach((result, index) => {
+                const lang = languages[index];
+                if (result.status !== 'fulfilled' || !Array.isArray(result.value.episodes)) {
+                    unavailable.push({ season: number, language: lang });
+                    return;
+                }
+                result.value.episodes.forEach(ep => {
+                    if (!byEpisode.has(ep.episode_number)) byEpisode.set(ep.episode_number, { season: number, episode: ep.episode_number, names: {}, air_date: ep.air_date, director: (ep.crew || []).filter(c => c.job === 'Director').map(c => c.name).join(', ') });
+                    byEpisode.get(ep.episode_number).names[lang] = ep.name || '';
+                });
+            });
+            if (!byEpisode.size || byEpisode.size < (season.episode_count || 0)) failedSeasons.push(number);
+            rows.push(...byEpisode.values());
+        }
+        rows.sort((a, b) => a.season - b.season || a.episode - b.episode);
+        return { rows, failedSeasons, unavailable };
     }
 
-    async getSeasonDetails(tvId, seasonNum) {
-        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener temporada: ' + res.status);
-        return await res.json();
-    }
-
-    async getEpisodeCredits(tvId, seasonNum, episodeNum) {
-        const url = `${this.baseURL}/tv/${tvId}/season/${seasonNum}/episode/${episodeNum}/credits?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener créditos de episodio: ' + res.status);
-        return await res.json();
-    }
-
-    async getMovieDetails(id) {
-        const url = `${this.baseURL}/movie/${id}?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener detalles de película: ' + res.status);
-        return await res.json();
-    }
-
-    async getMovieCredits(id) {
-        const url = `${this.baseURL}/movie/${id}/credits?api_key=${this.apiKey}&language=${this.language}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Error al obtener créditos de película: ' + res.status);
-        return await res.json();
-    }
-
-    async getTVCreator(id) {
+    async getTVCreator(id, language = this.language) {
         try {
-            const tv = await this.getTVDetails(id);
+            const tv = await this.getTVDetails(id, language);
             if (tv.created_by && tv.created_by.length > 0) {
                 return tv.created_by.map(c => c.name).join(', ');
             }
             // Fallback: si no hay created_by, buscar en créditos
-            const credits = await this.getTVCredits(id);
+            const credits = await this.getTVCredits(id, language);
             const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
             const executiveProducers = credits.crew?.filter(c => c.job === 'Executive Producer') || [];
             return creators.length > 0 ? creators.map(c => c.name).join(', ') :
@@ -355,9 +408,9 @@ class TMDBService {
         }
     }
 
-    async getTVGenres(id) {
+    async getTVGenres(id, language = this.language) {
         try {
-            const tv = await this.getTVDetails(id);
+            const tv = await this.getTVDetails(id, language);
             if (tv.genres && tv.genres.length > 0) {
                 return tv.genres.map(g => g.name).join(', ');
             } else {
@@ -369,9 +422,9 @@ class TMDBService {
         }
     }
 
-    async getEpisodeDirector(tvId, seasonNum, episodeNum) {
+    async getEpisodeDirector(tvId, seasonNum, episodeNum, language = this.language) {
         try {
-            const credits = await this.getEpisodeCredits(tvId, seasonNum, episodeNum);
+            const credits = await this.getEpisodeCredits(tvId, seasonNum, episodeNum, language);
             const directors = credits.crew?.filter(c => c.job === 'Director') || [];
             return directors.length > 0 ? directors.map(d => d.name).join(', ') : '';
         } catch (e) {
@@ -380,9 +433,9 @@ class TMDBService {
         }
     }
 
-    async getMovieCreator(id) {
+    async getMovieCreator(id, language = this.language) {
         try {
-            const credits = await this.getMovieCredits(id);
+            const credits = await this.getMovieCredits(id, language);
             const creators = credits.crew?.filter(c => c.job === 'Creator') || [];
             const directors = credits.crew?.filter(c => c.job === 'Director') || [];
             return creators.length > 0 ? creators.map(c => c.name).join(', ') : 
@@ -393,9 +446,9 @@ class TMDBService {
         }
     }
 
-    async getMovieGenres(id) {
+    async getMovieGenres(id, language = this.language) {
         try {
-            const movie = await this.getMovieDetails(id);
+            const movie = await this.getMovieDetails(id, language);
             if (movie.genres && movie.genres.length > 0) {
                 return movie.genres.map(g => g.name).join(', ');
             } else {
@@ -433,6 +486,11 @@ class TodoPopcornApp {
         this.selectedMoviesPage = 0;
         this.currentMode = 'multi-movies';
         this.lastGeneratedOutput = null;
+        this.revision = 0;
+        this.searchRevision = 0;
+        this.languageChoice = 'mix';
+        this.episodeTitles = [];
+        this.translationUnavailable = [];
         this.MOVIES_PER_PAGE = 5;
         
         this.tutorialCards = [
@@ -505,14 +563,18 @@ class TodoPopcornApp {
             DOMUtils.addEventListener(searchInput, 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.doSearch(); } });
         }
 
+        DOMUtils.addEventListener(DOMUtils.getElement('coverageChoices'), 'change', event => {
+            if (event.target.matches('input')) this.changeTitleLanguage(event.target.value);
+        });
+
         const closeOutputModal = DOMUtils.getElement('closeOutputModal');
         const outputModal = DOMUtils.getElement('outputModal');
         if (closeOutputModal) {
-            DOMUtils.addEventListener(closeOutputModal, 'click', () => outputModal.classList.remove('visible'));
+            DOMUtils.addEventListener(closeOutputModal, 'click', () => this.closeOutput());
         }
         if (outputModal) {
             DOMUtils.addEventListener(outputModal, 'click', (event) => {
-                if (event.target === outputModal) outputModal.classList.remove('visible');
+                if (event.target === outputModal) this.closeOutput();
             });
         }
 
@@ -545,33 +607,83 @@ class TodoPopcornApp {
     }
 
     handleOptionChange() {
+        if (this.refreshing) return;
+        this.invalidateOutput();
         this.updatePreview();
         this.saveOptions();
     }
 
-    handleLanguageClick(btn) {
-        const languageBtns = DOMUtils.getElements('.language-btn');
-        languageBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
-        DOMUtils.addClass(btn, 'active');
-        
-        const newLanguage = btn.dataset.language;
-        this.tmdbService.language = newLanguage;
-        
+    closeOutput() {
+        DOMUtils.getElement('outputModal').classList.remove('visible');
+        DOMUtils.getElement('coverageSlot').appendChild(DOMUtils.getElement('languageCoverage'));
+    }
+
+    invalidateOutput() {
+        this.revision = (this.revision || 0) + 1;
+        this.lastGeneratedOutput = null;
+        DOMUtils.getElement('jsonOutput').value = '';
+        DOMUtils.getElement('copyJson').disabled = true;
+        DOMUtils.getElement('viewPreviousBtn').disabled = true;
+        this.closeOutput();
+    }
+
+    updateGenerationState() {
+        const busy = this.refreshing || this.loadingDetails || this.generating;
+        DOMUtils.getElement('generateBtn').disabled = Boolean(busy || this.refreshError || this.detailsError);
+        DOMUtils.getElements('.mode-btn, .remove-movie').forEach(btn => { btn.disabled = Boolean(this.refreshing); });
+        DOMUtils.getElements('.option-row input').forEach(input => {
+            const seriesOnly = ['optSeasonEpisode', 'optEpisodeName', 'optAirDate', 'optIncludeEpisodeDirector'].includes(input.id);
+            input.disabled = Boolean(this.refreshing || (seriesOnly && this.currentMode !== 'tv'));
+        });
+        DOMUtils.getElement('languageStatus').textContent = busy ? 'Actualizando datos…' :
+            this.refreshError || this.detailsError ? 'No se pudo actualizar. Vuelve a pulsar el idioma para reintentar.' : '';
+    }
+
+    async handleLanguageClick(btn) {
+        const language = btn.dataset.language;
+        this.tmdbService.language = language;
+        DOMUtils.getElements('.language-btn').forEach(b => b.classList.toggle('active', b === btn));
+        this.invalidateOutput();
+        const revision = this.revision;
+        this.languageChoice = 'mix';
+        this.refreshing = true;
+        this.refreshError = false;
+        this.episodeTitles = [];
+        DOMUtils.getElement('languageCoverage').hidden = true;
+        DOMUtils.getElement('previewContent').replaceChildren();
+        this.updateGenerationState();
         this.saveOptions();
-        this.updatePreview();
-        
-        // Si hay resultados visibles, volver a ejecutar doSearch() para refrescar con el nuevo idioma
-        const searchInput = DOMUtils.getElement('searchInput');
-        const resultsEl = DOMUtils.getElement('results');
-        if (searchInput && searchInput.value.trim() && resultsEl && resultsEl.children.length > 0) {
-            this.doSearch();
+        try {
+            const refresh = this.selectedMovies.map(async item => {
+                const updated = await this.tmdbService.localizeItem(item, language);
+                if (this.revision === revision && this.selectedMovies.includes(item)) Object.assign(item, updated);
+            });
+            if (this.selectedItem) refresh.push(this.loadDetails(this.selectedItem));
+            if (DOMUtils.getElement('searchInput').value.trim()) refresh.push(this.doSearch());
+            await Promise.all(refresh);
+            if (this.revision === revision) {
+                this.updateSelectedMoviesPreview();
+                this.updatePreview();
+            }
+        } catch (_) {
+            if (this.revision === revision) this.refreshError = true;
+        } finally {
+            if (this.revision === revision) {
+                this.refreshing = false;
+                this.updateGenerationState();
+                this.updatePreview();
+            }
         }
     }
 
     handleModeClick(btn) {
+        if (this.refreshing) return;
         const modeBtns = DOMUtils.getElements('.mode-btn');
         modeBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
         DOMUtils.addClass(btn, 'active');
+        this.invalidateOutput();
+        this.episodeTitles = [];
+        DOMUtils.getElement('languageCoverage').hidden = true;
         this.currentMode = btn.dataset.mode;
         this.updateModeUI();
         this.updatePreview();
@@ -590,7 +702,6 @@ class TodoPopcornApp {
                 const label = opt.parentElement;
                 if (!isTV) {
                     DOMUtils.addClass(label, 'option-unavailable');
-                    opt.checked = false;
                 } else {
                     DOMUtils.removeClass(label, 'option-unavailable');
                 }
@@ -617,12 +728,21 @@ class TodoPopcornApp {
         
         this.selectedItem = null;
         this.selectedCard = null;
-
+        this.selectedKey = null;
+        this.detailsToken = null;
+        this.loadingDetails = false;
+        this.detailsError = false;
+        this.updateGenerationState();
     }
 
     updatePreview() {
         const options = this.getCurrentOptions();
-        this.previewComponent.update(options, this.tmdbService.language);
+        if (this.refreshing || this.loadingDetails) return;
+        if (options.isTV && this.selectedItem && !this.detailsError) {
+            PopcornExport.render(PopcornExport.build([this.selectedItem], this.episodesList, options), DOMUtils.getElement('previewContent'), this.episodesList);
+        } else if (!options.isTV && this.selectedMovies.length) {
+            PopcornExport.render(PopcornExport.build(this.selectedMovies, [], options), DOMUtils.getElement('previewContent'));
+        } else this.previewComponent.update(options, this.tmdbService.language);
     }
 
     getCurrentOptions() {
@@ -695,6 +815,8 @@ class TodoPopcornApp {
     }
 
     async doSearch() {
+        const language = this.tmdbService.language;
+        const searchRevision = ++this.searchRevision;
         const searchInput = DOMUtils.getElement('searchInput');
         const searchBtn = DOMUtils.getElement('searchBtn');
         const resultsEl = DOMUtils.getElement('results');
@@ -703,7 +825,7 @@ class TodoPopcornApp {
         const q = searchInput.value.trim();
         if (!q) return;
         
-        showGlobalLoader();
+        if (!this.refreshing) showGlobalLoader();
         
         if (searchBtn) {
             searchBtn.classList.add('loading');
@@ -721,19 +843,20 @@ class TodoPopcornApp {
         try {
             let results;
             if (this.currentMode === 'tv') {
-                results = await this.tmdbService.searchMulti(q);
+                results = await this.tmdbService.searchMulti(q, language);
                 results = results.filter(item => item.media_type === 'tv' || (!item.title && item.name));
             } else {
-                results = await this.tmdbService.searchMulti(q);
+                results = await this.tmdbService.searchMulti(q, language);
             }
+            if (this.tmdbService.language !== language || this.searchRevision !== searchRevision) return;
             this.displayResults(results);
         } catch (error) {
-            console.error('Búsqueda fallida', error);
+            if (this.tmdbService.language !== language || this.searchRevision !== searchRevision) return;
             if (resultsEl) {
                 DOMUtils.setHTML(resultsEl, '<p>Error buscando resultados. Por favor intenta de nuevo.</p>');
             }
         } finally {
-            hideGlobalLoader();
+            if (!this.refreshing) hideGlobalLoader();
             if (searchBtn) {
                 searchBtn.classList.remove('loading');
                 searchBtn.disabled = false;
@@ -743,6 +866,7 @@ class TodoPopcornApp {
     }
 
     displayResults(items) {
+        const language = this.tmdbService.language;
         const resultsEl = DOMUtils.getElement('results');
         if (!items.length) {
             if (resultsEl) {
@@ -770,12 +894,15 @@ class TodoPopcornApp {
             const title = it.title || it.name || 'Sin título';
             const date = it.release_date || it.first_air_date || '';
             const year = date ? date.split('-')[0] : '';
-            DOMUtils.setHTML(info, `
-                <h4>${title}${year ? ' (' + year + ')' : ''}</h4>
-                <p class="result-overview">${(it.overview || '').slice(0, 220)}</p>
-                <p class="result-director"></p>
-            `);
-            
+            const heading = document.createElement('h4');
+            heading.textContent = `${title}${year ? ' (' + year + ')' : ''}`;
+            const overview = document.createElement('p');
+            overview.className = 'result-overview';
+            overview.textContent = (it.overview || '').slice(0, 220);
+            const creator = document.createElement('p');
+            creator.className = 'result-director';
+            info.append(heading, overview, creator);
+
             const badge = document.createElement('div');
             badge.className = 'result-badge';
             const directorEl = info.querySelector('.result-director');
@@ -785,7 +912,8 @@ class TodoPopcornApp {
 
             if (mediaType === 'tv') {
                 DOMUtils.setText(badge, 'Serie');
-                this.tmdbService.getTVDetails(it.id).then(tv => {
+                this.tmdbService.getTVDetails(it.id, language).then(tv => {
+                    if (this.tmdbService.language !== language || !div.isConnected) return;
                     if (tv.number_of_seasons && tv.number_of_episodes) {
                         DOMUtils.setText(badge, `${tv.number_of_seasons} temp. · ${tv.number_of_episodes} ep.`);
                     }
@@ -799,13 +927,15 @@ class TodoPopcornApp {
                 }).catch(() => { DOMUtils.setText(badge, 'Serie'); });
             } else {
                 DOMUtils.setText(badge, 'Película');
-                this.tmdbService.getMovieDetails(it.id).then(movie => {
+                this.tmdbService.getMovieDetails(it.id, language).then(movie => {
+                    if (this.tmdbService.language !== language || !div.isConnected) return;
                     const duration = movie.runtime ? `${movie.runtime} min` : '';
                     DOMUtils.setText(badge, duration || 'Película');
                     if (movie.vote_average) {
                         DOMUtils.setText(meta, `⭐ ${movie.vote_average.toFixed(1)} / 10`);
                     }
-                    this.tmdbService.getMovieCredits(it.id).then(credits => {
+                    this.tmdbService.getMovieCredits(it.id, language).then(credits => {
+                        if (this.tmdbService.language !== language || !div.isConnected) return;
                         const directors = credits.crew?.filter(c => c.job === 'Director') || [];
                         const directorNames = directors.map(d => d.name).join(', ');
                         if (directorNames && directorEl) {
@@ -819,7 +949,8 @@ class TodoPopcornApp {
             div.appendChild(info);
             info.appendChild(meta);
             div.dataset.key = this.getItemKey(it);
-            if (this.currentMode === 'multi-movies' && this.selectedMovies.some(movie => this.getItemKey(movie) === div.dataset.key)) {
+            if (this.selectedKey === div.dataset.key || this.selectedMovies.some(movie => this.getItemKey(movie) === div.dataset.key)) {
+                if (this.selectedKey === div.dataset.key) this.selectedCard = div;
                 div.classList.add('selected');
             }
             DOMUtils.addEventListener(div, 'click', () => this.toggleSelection(it, div));
@@ -834,11 +965,15 @@ class TodoPopcornApp {
     }
 
     async toggleSelection(it, card) {
+        if (this.refreshing) return;
         if (this.currentMode === 'multi-movies') {
             await this.toggleMovieSelection(it, card);
             return;
         }
 
+        this.invalidateOutput();
+        DOMUtils.getElement('languageCoverage').hidden = true;
+        DOMUtils.getElement('languageCoverage').open = false;
         const key = this.getItemKey(it);
         const same = this.selectedKey === key;
         if (same) {
@@ -863,6 +998,9 @@ class TodoPopcornApp {
     }
 
     async toggleMovieSelection(it, card) {
+        this.invalidateOutput();
+        const revision = this.revision;
+        const language = this.tmdbService.language;
         const key = this.getItemKey(it);
         const existingIndex = this.selectedMovies.findIndex(movie => this.getItemKey(movie) === key);
         if (existingIndex >= 0) {
@@ -871,19 +1009,13 @@ class TodoPopcornApp {
         } else {
             showGlobalLoader();
             card.classList.add('loading');
-            const isTV = it.media_type === 'tv' || (!it.title && it.name);
             try {
-                if (isTV) {
-                    it.director = await this.tmdbService.getTVCreator(it.id);
-                    it.genres = await this.tmdbService.getTVGenres(it.id);
-                } else {
-                    it.director = await this.tmdbService.getMovieCreator(it.id);
-                    it.genres = await this.tmdbService.getMovieGenres(it.id);
-                }
-            } catch (e) {
-                console.warn('credits fetch failed', e);
-                it.director = '';
-                it.genres = '';
+                const updated = await this.tmdbService.localizeItem(it, language);
+                if (this.revision !== revision || this.tmdbService.language !== language) return;
+                Object.assign(it, updated);
+            } catch (_) {
+                this.showAlert('No se pudieron cargar los datos del título. Vuelve a seleccionarlo.');
+                return;
             } finally {
                 hideGlobalLoader();
                 card.classList.remove('loading');
@@ -892,43 +1024,97 @@ class TodoPopcornApp {
             card.classList.add('selected');
         }
         this.updateSelectedMoviesPreview();
+        this.updatePreview();
     }
 
     async loadDetails(it) {
         const token = {};
+        const language = this.tmdbService.language;
         this.detailsToken = token;
         this.loadingDetails = true;
         this.detailsError = false;
-        this.failedSeasons = [];
+        this.episodeTitles = [];
         this.episodesList = [];
-        showGlobalLoader();
-        const episodes = [];
-        const failedSeasons = [];
+        this.updateGenerationState();
         try {
-            const tv = await this.tmdbService.getTVDetails(it.id);
-            it.director = await this.tmdbService.getTVCreator(it.id);
-            it.genres = await this.tmdbService.getTVGenres(it.id);
-            for (const season of (tv.seasons || []).filter(s => s.season_number > 0)) {
-                try {
-                    const data = await this.tmdbService.getSeasonDetails(it.id, season.season_number);
-                    if (!Array.isArray(data.episodes)) throw new Error('Respuesta sin episodios');
-                    data.episodes.forEach(ep => episodes.push({ season: season.season_number, episode: ep.episode_number, name: ep.name, air_date: ep.air_date, director: '' }));
-                } catch (_) {
-                    failedSeasons.push(season.season_number);
-                }
-            }
-            if (this.detailsToken === token && this.selectedItem === it) {
-                this.episodesList = episodes.sort((a, b) => a.season - b.season || a.episode - b.episode);
-                this.failedSeasons = failedSeasons;
-            }
+            const localized = await this.tmdbService.localizeItem(it, language);
+            const data = await this.tmdbService.seasonTitles(it.id, localized.seasons || [], language);
+            if (this.detailsToken !== token || this.tmdbService.language !== language || this.selectedItem !== it) return;
+            Object.assign(it, localized);
+            if (this.selectedCard) this.selectedCard.querySelector('h4').textContent = PopcornExport.title(it, { includeYear: true });
+            this.failedSeasons = data.failedSeasons;
+            this.translationUnavailable = data.unavailable;
+            this.episodeTitles = data.rows;
+            this.languageChoice = 'mix';
+            this.episodesList = TitleLanguages.resolve(data.rows, language);
+            this.renderCoverage();
         } catch (_) {
-            if (this.detailsToken === token) {
+            if (this.detailsToken === token && this.tmdbService.language === language) {
                 this.detailsError = true;
-                this.showAlert('No se pudo cargar la serie. Vuelve a seleccionarla antes de exportar.');
+                this.showAlert('No se pudo cargar la serie. Vuelve a seleccionarla o pulsa su idioma para reintentar.');
             }
         } finally {
-            if (this.detailsToken === token) this.loadingDetails = false;
-            hideGlobalLoader();
+            if (this.detailsToken === token) {
+                this.loadingDetails = false;
+                this.updateGenerationState();
+                this.updatePreview();
+            }
+        }
+    }
+
+    renderCoverage() {
+        const language = this.tmdbService.language;
+        const stats = TitleLanguages.coverage(this.episodeTitles, language, this.languageChoice);
+        const panel = DOMUtils.getElement('languageCoverage');
+        panel.hidden = !stats.total || stats.available[language] === stats.total;
+        if (panel.hidden) return;
+        const percent = count => stats.total ? (100 * count / stats.total).toFixed(1) : '0.0';
+        DOMUtils.getElement('coverageWarning').textContent = 'Hay episodios sin título real en el idioma seleccionado.';
+        const segments = DOMUtils.getElement('coverageSegments');
+        segments.replaceChildren();
+        Object.entries(stats.used).concat([['missing', stats.missing]]).forEach(([lang, count]) => {
+            if (!count) return;
+            const part = document.createElement('span');
+            part.className = `language-${lang}`;
+            part.style.width = `${percent(count)}%`;
+            part.title = `${TitleLanguages.labels[lang] || 'Sin título real'}: ${count}`;
+            segments.appendChild(part);
+        });
+        segments.setAttribute('aria-label', 'Títulos utilizados: ' + Object.entries(stats.used).map(([lang, count]) => `${TitleLanguages.labels[lang]} ${count}`).join(', ') + `; sin título real ${stats.missing}`);
+        const bars = DOMUtils.getElement('coverageBars');
+        bars.replaceChildren();
+        Object.entries(TitleLanguages.labels).forEach(([lang, label]) => {
+            const row = document.createElement('div');
+            const caption = document.createElement('p');
+            caption.textContent = `${label}: ${stats.available[lang]}/${stats.total} disponibles (${percent(stats.available[lang])}%) · ${stats.used[lang]} utilizados (${percent(stats.used[lang])}%)`;
+            const bar = document.createElement('div');
+            bar.className = 'coverage-bar';
+            const fill = document.createElement('span');
+            fill.className = `language-${lang}`;
+            fill.style.width = `${percent(stats.available[lang])}%`;
+            bar.appendChild(fill); row.append(caption, bar); bars.appendChild(row);
+        });
+        DOMUtils.getElement('coverageSeasons').textContent = stats.seasons.map(s => `Temporada ${s.season}: ${s.available}/${s.total} en ${TitleLanguages.labels[language]} (${s.available === s.total ? 'completa' : 'parcial'})`).join(' · ');
+        DOMUtils.getElement('coverageMissing').textContent = (stats.missing ? `La elección deja ${stats.missing} episodios sin título real. Se conservará el código si está activado; no se inventarán nombres.` : '') +
+            (this.translationUnavailable.length ? ' No se pudo consultar parte de las traducciones; las cifras cuentan solo los nombres comprobados.' : '');
+        DOMUtils.getElement('coverageChoices').querySelectorAll('input').forEach(input => { input.checked = input.value === this.languageChoice; });
+    }
+
+    changeTitleLanguage(choice) {
+        if (!['mix', ...Object.keys(TitleLanguages.labels)].includes(choice)) return;
+        const wasGenerated = Boolean(this.lastGeneratedOutput);
+        const wasOpen = DOMUtils.getElement('outputModal').classList.contains('visible');
+        this.languageChoice = choice;
+        this.episodesList = TitleLanguages.resolve(this.episodeTitles, this.tmdbService.language, choice);
+        this.invalidateOutput();
+        this.renderCoverage();
+        this.updatePreview();
+        if (wasGenerated) {
+            this.lastGeneratedOutput = { document: PopcornExport.build([this.selectedItem], this.episodesList, this.getCurrentOptions()), episodes: this.episodesList, failedSeasons: this.failedSeasons };
+            DOMUtils.getElement('viewPreviousBtn').disabled = false;
+            // Update the saved JSON even when the user has closed the modal.
+            DOMUtils.getElement('jsonOutput').value = PopcornExport.validate(this.lastGeneratedOutput.document).json;
+            if (wasOpen) this.viewPreviousOutput();
         }
     }
 
@@ -978,8 +1164,10 @@ class TodoPopcornApp {
         selectedMoviesEl.querySelectorAll('.remove-movie').forEach(button => {
             DOMUtils.addEventListener(button, 'click', (event) => {
                 event.stopPropagation();
+                if (this.refreshing) return;
                 const chip = event.target.closest('.movie-chip');
                 const key = chip.dataset.key;
+                this.invalidateOutput();
                 this.selectedMovies = this.selectedMovies.filter(movie => this.getItemKey(movie) !== key);
                 if (this.selectedMoviesPage > 0 && this.selectedMoviesPage >= Math.ceil(this.selectedMovies.length / this.MOVIES_PER_PAGE)) {
                     this.selectedMoviesPage = Math.max(0, this.selectedMoviesPage - 1);
@@ -1005,6 +1193,16 @@ class TodoPopcornApp {
     }
 
     clearSearch() {
+        this.invalidateOutput();
+        this.refreshing = false;
+        this.refreshError = false;
+        this.searchRevision++;
+        this.detailsToken = null;
+        this.loadingDetails = false;
+        this.detailsError = false;
+        this.episodeTitles = [];
+        DOMUtils.getElement('languageCoverage').hidden = true;
+        this.updateGenerationState();
         this.selectedMovies = [];
         this.selectedMoviesPage = 0;
         this.updateSelectedMoviesPreview();
@@ -1024,10 +1222,12 @@ class TodoPopcornApp {
     }
 
     async generateOutput() {
-        if (this.generating) return;
+        if (this.generating || this.refreshing || this.refreshError) return;
         if (this.currentMode === 'tv' && (this.loadingDetails || this.detailsError)) {
             return this.showAlert('Espera a que termine la descarga o vuelve a seleccionar la serie si falló.');
         }
+        const revision = this.revision;
+        const language = this.tmdbService.language;
         const options = this.getCurrentOptions();
         const items = options.isTV ? (this.selectedItem ? [this.selectedItem] : []) : this.selectedMovies.slice();
         if (!items.length) return this.showAlert('Selecciona al menos un título.');
@@ -1040,9 +1240,10 @@ class TodoPopcornApp {
         try {
             if (options.isTV && options.includeEpisodeDirector) {
                 for (const ep of episodes) {
-                    ep.director = await this.tmdbService.getEpisodeDirector(items[0].id, ep.season, ep.episode);
+                    if (!ep.director) ep.director = await this.tmdbService.getEpisodeDirector(items[0].id, ep.season, ep.episode, language);
                 }
             }
+            if (this.revision !== revision || this.tmdbService.language !== language) return;
             this.lastGeneratedOutput = { document: PopcornExport.build(items, episodes, options), failedSeasons, episodes: options.isTV ? episodes : [] };
             this.viewPreviousOutput();
             DOMUtils.getElement('viewPreviousBtn').disabled = false;
@@ -1050,7 +1251,7 @@ class TodoPopcornApp {
             this.showAlert('No se pudo generar el JSON. Vuelve a intentarlo.');
         } finally {
             this.generating = false;
-            button.disabled = false;
+            this.updateGenerationState();
             hideGlobalLoader();
         }
     }
@@ -1065,6 +1266,7 @@ class TodoPopcornApp {
         DOMUtils.getElement('incompleteMessage').textContent = `Serie incompleta: no se pudieron descargar las temporadas ${failedSeasons.join(', ')}. Vuelve a seleccionar la serie para reintentar o acepta exportar sin esas temporadas.`;
         DOMUtils.getElement('acceptIncomplete').checked = false;
         PopcornExport.render(document, DOMUtils.getElement('outputPreview'), this.lastGeneratedOutput.episodes);
+        DOMUtils.getElement('outputCoverage').appendChild(DOMUtils.getElement('languageCoverage'));
         DOMUtils.getElement('jsonDisclosure').open = !window.matchMedia('(max-width: 600px)').matches;
         this.updateCopyState();
         DOMUtils.getElement('outputModal').classList.add('visible');
@@ -1115,9 +1317,12 @@ class TodoPopcornApp {
 
 // Inicializar la aplicación cuando el DOM esté completamente cargado
 function initApp() {
+    const root = document.querySelector('.todo-popcorn');
+    if (!root || root.todoPopcornApp) return;
     try {
         console.log('DOM completamente cargado, inicializando aplicación...');
         const app = new TodoPopcornApp();
+        root.todoPopcornApp = app;
         console.log('Aplicación inicializada correctamente');
     } catch (error) {
         console.error('Error al inicializar la aplicación:', error);

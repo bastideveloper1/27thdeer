@@ -35,11 +35,24 @@
             </div>
         </div>
 
-        <div id="options" class="options options-card">
-            <div class="options-header">
-                <h3>Opciones de salida</h3>
-                <p>Configura antes de buscar y generar tu lista para Arachn0de.</p>
+        <!-- Buscador y resultados -->
+        <div class="search-row">
+            <input id="searchInput" type="search" placeholder="Buscar serie o película..." />
+            <button id="searchBtn" type="button">Buscar</button>
+        </div>
+
+            <div class="format-select">
+                <span id="languageLabel">Idioma:</span>
+                <div class="language-toggle">
+                    <button type="button" class="language-btn active" data-language="es-ES">Español 🇪🇸</button>
+                    <button type="button" class="language-btn" data-language="es-MX">Latino 🇲🇽</button>
+                    <button type="button" class="language-btn" data-language="en-US">English 🇺🇸</button>
+                </div>
             </div>
+        <span id="languageStatus" role="status" aria-live="polite"></span>
+        <details id="options" class="options options-card">
+            <summary>Personalizar títulos e información</summary>
+
             <fieldset class="option-group">
                 <legend>Títulos</legend>
                 <div class="option-row">
@@ -60,33 +73,35 @@
                 </div>
                 <p>Se conserva en la descripción.</p>
             </fieldset>
-            <div class="format-select">
-                <span id="languageLabel">Idioma:</span>
-                <div class="language-toggle">
-                    <button type="button" class="language-btn active" data-language="es-ES">Español 🇪🇸</button>
-                    <button type="button" class="language-btn" data-language="es-MX">Latino 🇲🇽</button>
-                    <button type="button" class="language-btn" data-language="en-US">English 🇺🇸</button>
-                </div>
-            </div>
             <div class="preview-section">
                 <h3>Vista previa del formato</h3>
                 <div id="previewContent" class="preview-content">
                     <p class="preview-placeholder">Selecciona opciones para ver la vista previa...</p>
                 </div>
             </div>
+
+        </details>
+
             <div class="action-row">
                 <button id="viewPreviousBtn" type="button" class="secondary-btn" disabled>Ultima búsqueda</button>
                 <button id="clearSearchBtn" type="button" class="secondary-btn">Limpiar búsqueda</button>
                 <button id="generateBtn" type="button" class="generate-btn">Generar JSON</button>
             </div>
+        <div id="coverageSlot">
+            <details id="languageCoverage" class="language-coverage" hidden>
+                <summary><strong>Cobertura de idiomas</strong><span id="coverageWarning"></span><span id="coverageSegments" class="coverage-segments" role="img"></span></summary>
+                <div id="coverageBars"></div>
+                <p id="coverageSeasons"></p>
+                <fieldset id="coverageChoices">
+                    <legend>Títulos de los episodios</legend>
+                    <label><input type="radio" name="titleLanguage" value="mix" checked> Combinar traducciones disponibles</label>
+                    <label><input type="radio" name="titleLanguage" value="es-MX"> Solo español latino</label>
+                    <label><input type="radio" name="titleLanguage" value="es-ES"> Solo español de España</label>
+                    <label><input type="radio" name="titleLanguage" value="en-US"> Solo inglés</label>
+                </fieldset>
+                <p id="coverageMissing" role="status"></p>
+            </details>
         </div>
-
-        <!-- Buscador y resultados -->
-        <div class="search-row">
-            <input id="searchInput" type="search" placeholder="Buscar serie o película..." />
-            <button id="searchBtn" type="button">Buscar</button>
-        </div>
-
         <div id="selectedMovies" class="selected-movies" style="display:none"></div>
         <div id="results" class="results"></div>
 
@@ -97,6 +112,7 @@
                 <h3 id="outputTitle">Importar en Arachn0de</h3>
                 <div class="output-modal-body">
                 <p>Copia el JSON y pégalo en Crear → Desde texto.</p>
+                <div id="outputCoverage"></div>
                 <div id="outputPreview" class="structure-preview" aria-label="Jerarquía resultante"></div>
                 <p id="jsonErrors" role="alert" style="white-space:pre-wrap"></p>
                 <div id="incompleteWarning" hidden>

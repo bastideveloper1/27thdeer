@@ -5,8 +5,7 @@
     const routes = {
         '/': '/pages/index.html',
         '/proyectos': '/pages/proyectos.html',
-        '/todo_popcorn': '/pages/todo_popcorn.html',
-        '/todo-pagos': '/pages/todo-pagos.html'
+        '/todo_popcorn': '/pages/todo_popcorn.html'
     };
     
     function normalizeRoute(path) {
@@ -28,7 +27,7 @@
         let normalizedPath = normalizeRoute(path);
         
         const file = routes[normalizedPath];
-        if (!file) return;
+        if (!file) { window.location.hash = '/'; return; }
         
         fetch(file)
             .then(res => res.text())
@@ -53,12 +52,7 @@
                                 const scriptSrc = new URL(oldScript.src, window.location.href).href;
                                 const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
                                 
-                                // Para todo-pagos, siempre recargar el script para asegurar inicialización correcta
-                                if (scriptSrc.includes('todo-pagos.js')) {
-                                    if (existingScript) {
-                                        existingScript.remove();
-                                    }
-                                } else if (existingScript) {
+                                if (existingScript) {
                                     console.log('Script ya existe, evitando carga duplicada:', scriptSrc);
                                     return;
                                 }
@@ -95,10 +89,6 @@
                     // Llamar a funciones de inicialización expuestas globalmente
                     if (normalizedPath === '/todo_popcorn' && typeof window.initTodoPopcorn === 'function') {
                         window.initTodoPopcorn();
-                    }
-
-                    if (normalizedPath === '/todo-pagos' && typeof window.initTodoPagos === 'function') {
-                        window.initTodoPagos();
                     }
 
                     if (normalizedPath === '/proyectos' && typeof window.initTrayectoria === 'function') {

@@ -96,3 +96,11 @@ El proyecto está diseñado para hosting estático (GitHub Pages, Netlify, etc.)
 ## Verificación de la exportación de ToDo Popcorn!
 
 Ejecutar `node tests/todo_popcorn.test.cjs`. Las pruebas usan el generador real sin iniciar la página ni consultar TMDB. Cubren estructura JSON, personalización, metadatos, límites del importador y aceptación de temporadas incompletas.
+
+### Idiomas en ToDo Popcorn!
+
+El selector principal actualiza la selección y sus metadatos sin perderla. Las respuestas de TMDB se reutilizan por ruta e idioma, también mientras están en curso. Cada temporada se consulta en es-MX, es-ES y en-US; no se consulta cada episodio para resolver nombres. Se descartan nombres vacíos y marcadores genéricos numerados.
+
+Prioridades: es-MX → es-ES → en-US; es-ES → es-MX → en-US; en-US únicamente. Cuando falta cobertura aparece una sección desplegable con disponibilidad comprobada por idioma, distribución utilizada y cobertura por temporada. Permite combinar traducciones o usar un solo idioma, sin añadir etiquetas a los títulos. Si una consulta falla, se indica que la cobertura está incompleta; si no hay un nombre real se conserva únicamente el código seleccionado, sin inventarlo.
+
+Las opciones secundarias se agrupan en un desplegable. El JSON y la jerarquía V1 permanecen iguales. Las pruebas focalizadas incluyen caché por idioma, prioridades, cobertura, respuestas tardías y regeneración del JSON.
