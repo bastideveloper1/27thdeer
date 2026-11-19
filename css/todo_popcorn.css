@@ -1100,3 +1100,53 @@ textarea {
     animation: spin 0.8s linear infinite;
     box-shadow: 0 0 20px rgba(45, 106, 79, 0.4);
 }
+
+/* Keep the dialog controls outside the scrollable results. */
+.output-modal,
+.output-modal * { box-sizing: border-box; }
+.output-modal { height: 100dvh; padding: 1rem; }
+.output-modal-card {
+    width: min(810px, 100%);
+    max-height: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.output-modal-card > h3 { padding-right: 44px; flex-shrink: 0; }
+.output-modal .modal-close { width: 38px; height: 38px; top: 12px; right: 12px; }
+.output-modal-body { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.output-modal-body > p:first-child { margin-top: 0; }
+#outputPreview { max-height: min(30dvh, 300px); overflow: auto; }
+#outputPreview ul { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+.structure-preview details { margin: 0.65rem 0; }
+.structure-preview summary, .json-disclosure summary { cursor: pointer; overflow-wrap: anywhere; }
+.json-disclosure { min-width: 0; margin-top: 1rem; }
+.json-label { display: block; margin: 0.5rem 0; font-size: 0.85rem; }
+.output-modal .output-row { margin-bottom: 0; }
+.output-modal #jsonOutput {
+    min-width: 0;
+    min-height: 0;
+    height: min(30dvh, 280px);
+    max-height: 30dvh;
+    resize: none;
+    overflow: auto;
+}
+.output-modal-footer { position: relative; flex-shrink: 0; padding-top: 0.75rem; }
+.output-modal-footer > #copyJson { position: absolute; right: 0.75rem; top: -1.5rem; transform: translateY(-100%); max-width: 110px; }
+.output-modal .output-row { padding-right: 120px; }
+.output-modal-footer .tmdb-credit { margin-top: 0.75rem; }
+.option-group { min-width: 0; border: 1px solid #444; border-radius: 10px; margin: 1rem 0; padding: 0.75rem; }
+.option-group legend { color: #f0e8ff; padding: 0 0.35rem; }
+.option-group p { font-size: 0.85rem; color: #b8b6ac; }
+@media (max-width: 600px) {
+    .output-modal { padding: 0.5rem; }
+    .output-modal-card { padding: 1rem; }
+    .output-modal .output-row { padding: 0.5rem; }
+    .output-modal-footer > #copyJson { position: static; transform: none; width: 100%; max-width: none; min-height: 44px; }
+    .output-modal-footer .tmdb-credit { margin-top: 0.5rem; padding-top: 0.5rem; }
+    .output-modal .tmdb-logo { max-width: min(160px, 100%); }
+    #outputPreview { max-height: 30dvh; }
+    .output-modal #jsonOutput { height: 22dvh; max-height: 22dvh; font-size: 16px; }
+    .structure-preview ul { padding-left: 1rem; }
+}

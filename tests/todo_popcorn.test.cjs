@@ -9,14 +9,14 @@ const element = id => {
     if (!elements.has(id)) elements.set(id, { value: '', checked: false, disabled: false, style: {}, classList: { add() {}, remove() {} }, replaceChildren() {}, appendChild() {} });
     return elements.get(id);
 };
-const document = { readyState: 'loading', addEventListener() {}, getElementById: element, createElement: () => ({ style: {}, appendChild() {} }) };
-const context = { window: { document }, document, TextEncoder, console, setTimeout, navigator: { clipboard: { writeText: async () => {} } } };
+const document = { readyState: 'loading', addEventListener() {}, getElementById: element, createElement: tag => ({ tag, style: {}, children: [], appendChild(child) { this.children.push(child); } }) };
+const context = { window: { document, matchMedia: () => ({ matches: false }) }, document, TextEncoder, console, setTimeout, navigator: { clipboard: { writeText: async () => {} } } };
 vm.createContext(context);
 let source = fs.readFileSync('js/todo_popcorn_traditional.js', 'utf8');
 source = source.replace('// Inicializar la aplicación cuando el DOM', 'window.testApi = { PopcornExport, TodoPopcornApp };\n// Inicializar la aplicación cuando el DOM');
 vm.runInContext(source, context);
 const { PopcornExport: exporter, TodoPopcornApp } = context.window.testApi;
-const options = { isTV: false, includeSE: true, includeName: true, titleFormat: '1', format: '1', emoji: '' };
+const options = { isTV: false, includeSE: true, includeName: true, includeYear: true };
 const movie = { title: 'Una "película" 🎬', release_date: '2024-01-01', vote_average: 8.5, director: 'Directora', genres: 'Drama' };
 const episodes = [
     { season: 1, episode: 1, name: 'Inicio', air_date: '2024-01-01', director: 'Ana' },
@@ -40,18 +40,18 @@ test('series are one layer with ordered tasks and optional metadata only in desc
     const doc = exporter.build([movie], episodes, { ...options, isTV: true, includeDate: true, includeRating: true, includeDirector: true, includeGenre: true, includeEpisodeDirector: true, useEvolution: true });
     const root = doc.items[0];
     assert.equal(root.type, 'layer');
-    assert.deepEqual(plain(root.children.map(ep => ep.title)), ['🍿 T01|E01 - Inicio', 'T01|E02 - Final', '🍿 T02|E01 - Regreso']);
+    assert.deepEqual(plain(root.children.map(ep => ep.title)), ['T01|E01 - Inicio', 'T01|E02 - Final', 'T02|E01 - Regreso']);
     assert.equal(root.title, 'Una "película" 🎬 (2024)');
     assert.match(root.description, /Puntuación: 8.5 \/ 10\nCreador: Directora\nGénero: Drama\nFecha: 2024-01-01/);
     assert.equal(root.children[0].description, 'Fecha de emisión: 2024-01-01\nDirector: Ana');
     assert.equal(validate(doc).errors.length, 0);
 });
 
-test('episode options remove codes/names, preserve reverse format and reject empty titles', () => {
+test('episode options remove codes/names, ignore legacy formats and reject empty titles', () => {
     const build = changes => exporter.build([movie], episodes, { ...options, isTV: true, ...changes });
     assert.equal(build({ includeSE: false }).items[0].children[0].title, 'Inicio');
     assert.equal(build({ includeName: false }).items[0].children[0].title, 'T01|E01');
-    assert.equal(build({ format: '2', emoji: '🎬' }).items[0].children[0].title, '🎬 Inicio - T01|E01');
+    assert.equal(build({ format: '2', emoji: '🎬' }).items[0].children[0].title, 'T01|E01 - Inicio');
     assert.ok(validate(build({ includeSE: false, includeName: false })).errors.length);
     assert.equal(build({}).items[0].children[0].description, '');
 });
@@ -116,4 +116,24 @@ test('generation and clipboard use the validated snapshot, including previous ou
     app.selectedMovies = [];
     app.viewPreviousOutput();
     assert.deepEqual(JSON.parse(element('jsonOutput').value), generated);
+});
+
+test('fixed titles support optional year and ignore legacy customizations', () => {
+    const legacy = { ...options, titleFormat: '2', format: '2', emoji: '🍿', useEvolution: true };
+    assert.equal(exporter.build([movie], [], legacy).items[0].title, 'Una "película" 🎬 (2024)');
+    assert.equal(exporter.build([movie], [], { ...legacy, includeYear: false }).items[0].title, 'Una "película" 🎬');
+});
+
+test('season groups start collapsed and never alter the exported hierarchy', () => {
+    const doc = exporter.build([movie], episodes, { ...options, isTV: true });
+    const original = JSON.stringify(doc);
+    const target = { children: [], replaceChildren() { this.children = []; }, appendChild(child) { this.children.push(child); } };
+    exporter.render(doc, target, episodes);
+    const root = target.children[0].children[0];
+    const groups = root.children.filter(node => node.tag === 'details');
+    assert.equal(groups.length, 2);
+    assert.deepEqual(groups.map(group => group.children[0].textContent), ['Temporada 1 · 2 episodios', 'Temporada 2 · 1 episodio']);
+    assert.ok(groups.every(group => !group.open));
+    assert.equal(JSON.stringify(doc), original);
+    assert.ok(doc.items[0].children.every(child => child.type === 'task' && !child.children));
 });

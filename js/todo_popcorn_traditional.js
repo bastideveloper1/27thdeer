@@ -81,28 +81,10 @@ function hideGlobalLoader() {
 
 // Utilidades de formato
 const FormatUtils = {
-    formatTitle(title, year, format) {
-        if (format === '1') {
-            return `${title}${year ? ' (' + year + ')' : ''}`;
-        } else if (format === '2') {
-            return `${year ? '[' + year + '] ' : ''}${title}`;
-        } else if (format === '3') {
-            return `${year ? year + ' · ' : ''}${title}`;
-        }
-        return title;
-    },
     formatSeasonEpisode(season, episode) {
         const s = season < 10 ? '0' + season : season;
         const e = episode < 10 ? '0' + episode : episode;
         return `T${s}|E${e}`;
-    },
-    formatEpisode(season, episode, name, format) {
-        const seCode = season != null ? this.formatSeasonEpisode(season, episode) : '';
-        if (format === '1') {
-            return seCode + (seCode && name ? ' - ' : '') + name;
-        } else {
-            return name + (name && seCode ? ' - ' : '') + seCode;
-        }
     },
     formatDate(date) {
         return date ? ` (${date})` : '';
@@ -154,7 +136,9 @@ class StorageService {
 const PopcornExport = {
     title(item, options) {
         const date = item.release_date || item.first_air_date || '';
-        return FormatUtils.formatTitle(item.title || item.name || '', date.split('-')[0], options.titleFormat);
+        const title = item.title || item.name || '';
+        const year = date.split('-')[0];
+        return `${title}${options.includeYear && year ? ' (' + year + ')' : ''}`;
     },
     metadata(item, options) {
         return [
@@ -167,18 +151,17 @@ const PopcornExport = {
     build(items, episodes, options) {
         const roots = items.map(item => ({
             type: options.isTV ? 'layer' : 'task',
-            title: `${!options.isTV && options.emoji ? options.emoji + ' ' : ''}${this.title(item, options)}`,
+            title: this.title(item, options),
             description: this.metadata(item, options)
         }));
         if (options.isTV && roots.length === 1) {
-            roots[0].children = episodes.map((ep, index) => {
+            roots[0].children = episodes.map(ep => {
                 const code = options.includeSE ? FormatUtils.formatSeasonEpisode(ep.season, ep.episode) : '';
                 const name = options.includeName ? ep.name || '' : '';
-                const parts = options.format === '1' ? [code, name] : [name, code];
-                const prefix = options.useEvolution ? (index === 0 || ep.season !== episodes[index - 1].season ? '🍿' : '') : options.emoji;
+                const parts = [code, name];
                 return {
                     type: 'task',
-                    title: `${prefix ? prefix + ' ' : ''}${parts.filter(Boolean).join(' - ')}`,
+                    title: parts.filter(Boolean).join(' - '),
                     description: [
                         options.includeDate && ep.air_date ? `Fecha de emisión: ${ep.air_date}` : '',
                         options.includeEpisodeDirector && ep.director ? `Director: ${ep.director}` : ''
@@ -208,7 +191,7 @@ const PopcornExport = {
         if (new TextEncoder().encode(json).length > 2 * 1024 * 1024) errors.push('El JSON supera 2 MiB UTF-8.');
         return { json, errors };
     },
-    render(document, target) {
+    render(document, target, episodes = []) {
         target.replaceChildren();
         const tree = (items, parent) => {
             const list = documentCreate('ul');
@@ -223,7 +206,23 @@ const PopcornExport = {
                     detail.style.whiteSpace = 'pre-wrap';
                     row.appendChild(detail);
                 }
-                if (item.children) tree(item.children, row);
+                if (item.children) {
+                    // Seasons group the preview only; exported children remain flat and ordered.
+                    const seasons = new Map();
+                    item.children.forEach((child, index) => {
+                        const season = episodes[index]?.season;
+                        if (!seasons.has(season)) seasons.set(season, []);
+                        seasons.get(season).push(child);
+                    });
+                    seasons.forEach((children, season) => {
+                        const group = documentCreate('details');
+                        const summary = documentCreate('summary');
+                        summary.textContent = `${season == null ? 'Episodios' : 'Temporada ' + season} · ${children.length} ${children.length === 1 ? 'episodio' : 'episodios'}`;
+                        group.appendChild(summary);
+                        tree(children, group);
+                        row.appendChild(group);
+                    });
+                }
                 list.appendChild(row);
             });
             parent.appendChild(list);
@@ -239,7 +238,7 @@ window.PreviewComponent = window.PreviewComponent || class PreviewComponent {
         const names = language === 'en-US' ? ['Pilot', 'Paternity'] : ['Piloto', 'Paternidad'];
         const sample = { title: language === 'es-MX' ? 'Dr. House' : 'House', release_date: '2004-11-16', vote_average: 8.6, director: 'David Shore', genres: 'Drama' };
         const episodes = names.map((name, i) => ({ season: 1, episode: i + 1, name, air_date: `2004-11-${16 + i * 7}`, director: 'Bryan Singer' }));
-        PopcornExport.render(PopcornExport.build([sample], episodes, options), this.previewElement);
+        PopcornExport.render(PopcornExport.build([sample], episodes, options), this.previewElement, episodes);
         this.previewElement.classList.remove('preview-placeholder');
     }
 };
@@ -440,7 +439,7 @@ class TodoPopcornApp {
             'ToDo Popcorn! usa datos de TMDB y genera JSON para Arachn0de.',
             'Modo títulos: selecciona películas o series para crear tareas independientes.',
             'Modo serie: crea una Capa con todos los episodios de las temporadas normales como Tareas, en orden.',
-            'Personaliza títulos, códigos, nombres y emojis. Los metadatos seleccionados se conservan en la descripción.',
+            'Elige si incluir año, códigos y nombres. Los metadatos seleccionados se conservan en la descripción.',
             'Genera el JSON, revisa la jerarquía y pulsa «Copiar JSON». En Arachn0de abre Crear → Desde texto, pega y confirma la vista previa.',
             'Los límites del importador se validan antes de copiar. Si falla una temporada, debes aceptar explícitamente la exportación incompleta.'
         ];
@@ -486,16 +485,6 @@ class TodoPopcornApp {
             DOMUtils.addEventListener(checkbox, 'change', () => this.handleOptionChange());
         });
 
-        const formatBtns = DOMUtils.getElements('.format-btn');
-        formatBtns.forEach(btn => {
-            DOMUtils.addEventListener(btn, 'click', () => this.handleFormatClick(btn));
-        });
-
-        const titleFormatBtns = DOMUtils.getElements('.title-format-btn');
-        titleFormatBtns.forEach(btn => {
-            DOMUtils.addEventListener(btn, 'click', () => this.handleTitleFormatClick(btn));
-        });
-
         const languageBtns = DOMUtils.getElements('.language-btn');
         languageBtns.forEach(btn => {
             DOMUtils.addEventListener(btn, 'click', () => this.handleLanguageClick(btn));
@@ -506,11 +495,6 @@ class TodoPopcornApp {
             DOMUtils.addEventListener(btn, 'click', () => this.handleModeClick(btn));
         });
 
-        const emojiInput = DOMUtils.getElement('emojiInput');
-        if (emojiInput) {
-            DOMUtils.addEventListener(emojiInput, 'input', () => this.handleOptionChange());
-        }
-
         const searchBtn = DOMUtils.getElement('searchBtn');
         const searchInput = DOMUtils.getElement('searchInput');
         if (searchBtn) {
@@ -519,38 +503,6 @@ class TodoPopcornApp {
         if (searchInput) {
             DOMUtils.addEventListener(searchInput, 'keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.doSearch(); } });
             DOMUtils.addEventListener(searchInput, 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.doSearch(); } });
-        }
-
-        const emojiToggle = DOMUtils.getElement('emojiToggle');
-        const emojiList = DOMUtils.getElement('emojiList');
-        if (emojiToggle && emojiList) {
-            DOMUtils.addEventListener(emojiToggle, 'click', () => emojiList.classList.toggle('visible'));
-            emojiList.querySelectorAll('button').forEach(button => {
-                DOMUtils.addEventListener(button, 'click', () => {
-                    if (emojiInput) {
-                        emojiInput.value = button.textContent.trim();
-                    }
-                    emojiList.classList.remove('visible');
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!emojiToggle.contains(event.target) && !emojiList.contains(event.target)) {
-                    emojiList.classList.remove('visible');
-                }
-            });
-        }
-
-        const optEvolvingEmoji = DOMUtils.getElement('optEvolvingEmoji');
-        if (optEvolvingEmoji && emojiInput && emojiToggle) {
-            DOMUtils.addEventListener(optEvolvingEmoji, 'change', () => {
-                const disabled = optEvolvingEmoji.checked;
-                emojiInput.disabled = disabled;
-                emojiToggle.disabled = disabled;
-            });
-            // Asegurar que el input de emoji no esté deshabilitado por defecto
-            emojiInput.disabled = optEvolvingEmoji.checked;
-            emojiToggle.disabled = optEvolvingEmoji.checked;
         }
 
         const closeOutputModal = DOMUtils.getElement('closeOutputModal');
@@ -597,22 +549,6 @@ class TodoPopcornApp {
         this.saveOptions();
     }
 
-    handleFormatClick(btn) {
-        const formatBtns = DOMUtils.getElements('.format-btn');
-        formatBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
-        DOMUtils.addClass(btn, 'active');
-        this.updatePreview();
-        this.saveOptions();
-    }
-
-    handleTitleFormatClick(btn) {
-        const titleFormatBtns = DOMUtils.getElements('.title-format-btn');
-        titleFormatBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
-        DOMUtils.addClass(btn, 'active');
-        this.updatePreview();
-        this.saveOptions();
-    }
-
     handleLanguageClick(btn) {
         const languageBtns = DOMUtils.getElements('.language-btn');
         languageBtns.forEach(b => DOMUtils.removeClass(b, 'active'));
@@ -646,7 +582,7 @@ class TodoPopcornApp {
         const isTV = this.currentMode === 'tv';
         const isMulti = this.currentMode === 'multi-movies';
         
-        const tvOnlyOptions = ['optSeasonEpisode', 'optEpisodeName', 'optAirDate', 'optEvolvingEmoji', 'optIncludeEpisodeDirector'];
+        const tvOnlyOptions = ['optSeasonEpisode', 'optEpisodeName', 'optAirDate', 'optIncludeEpisodeDirector'];
         tvOnlyOptions.forEach(id => {
             const opt = DOMUtils.getElement(id);
             if (opt) {
@@ -660,24 +596,6 @@ class TodoPopcornApp {
                 }
             }
         });
-
-        const formatBtns = DOMUtils.getElements('.format-btn');
-        formatBtns.forEach(btn => {
-            if (!isTV) {
-                DOMUtils.addClass(btn, 'option-unavailable');
-                btn.disabled = true;
-            } else {
-                DOMUtils.removeClass(btn, 'option-unavailable');
-                btn.disabled = false;
-            }
-        });
-
-        if (isTV) {
-            const optSeasonEpisode = DOMUtils.getElement('optSeasonEpisode');
-            const optEpisodeName = DOMUtils.getElement('optEpisodeName');
-            if (optSeasonEpisode) optSeasonEpisode.checked = true;
-            if (optEpisodeName) optEpisodeName.checked = true;
-        }
 
         const searchInput = DOMUtils.getElement('searchInput');
         if (searchInput) searchInput.placeholder = 'Buscar serie o película...';
@@ -700,28 +618,6 @@ class TodoPopcornApp {
         this.selectedItem = null;
         this.selectedCard = null;
 
-        this.updateFormatAvailability();
-    }
-
-    updateFormatAvailability() {
-        const isTV = this.currentMode === 'tv';
-        const optSeasonEpisode = DOMUtils.getElement('optSeasonEpisode');
-        const optEpisodeName = DOMUtils.getElement('optEpisodeName');
-        const hasSeasonEpisode = optSeasonEpisode ? optSeasonEpisode.checked : false;
-        const hasEpisodeName = optEpisodeName ? optEpisodeName.checked : false;
-        const formatBtns = DOMUtils.getElements('.format-btn');
-
-        if (!isTV || !(hasSeasonEpisode && hasEpisodeName)) {
-            formatBtns.forEach(btn => {
-                DOMUtils.addClass(btn, 'option-unavailable');
-                btn.disabled = true;
-            });
-        } else {
-            formatBtns.forEach(btn => {
-                DOMUtils.removeClass(btn, 'option-unavailable');
-                btn.disabled = false;
-            });
-        }
     }
 
     updatePreview() {
@@ -730,34 +626,14 @@ class TodoPopcornApp {
     }
 
     getCurrentOptions() {
-        const optSeasonEpisode = DOMUtils.getElement('optSeasonEpisode');
-        const optEpisodeName = DOMUtils.getElement('optEpisodeName');
-        const optAirDate = DOMUtils.getElement('optAirDate');
-        const optIncludeRating = DOMUtils.getElement('optIncludeRating');
-        const optIncludeDirector = DOMUtils.getElement('optIncludeDirector');
-        const optIncludeGenre = DOMUtils.getElement('optIncludeGenre');
-        const optIncludeEpisodeDirector = DOMUtils.getElement('optIncludeEpisodeDirector');
-        const optEvolvingEmoji = DOMUtils.getElement('optEvolvingEmoji');
-        const emojiInput = DOMUtils.getElement('emojiInput');
-        const formatBtns = DOMUtils.getElements('.format-btn.active');
-        const formatBtn = formatBtns.length > 0 ? formatBtns[0] : null;
-        const titleFormatBtns = DOMUtils.getElements('.title-format-btn.active');
-        const titleFormatBtn = titleFormatBtns.length > 0 ? titleFormatBtns[0] : null;
-
-        return {
-            isTV: this.currentMode === 'tv',
-            includeSE: optSeasonEpisode ? optSeasonEpisode.checked : false,
-            includeName: optEpisodeName ? optEpisodeName.checked : false,
-            includeDate: optAirDate ? optAirDate.checked : false,
-            includeRating: optIncludeRating ? optIncludeRating.checked : false,
-            includeDirector: optIncludeDirector ? optIncludeDirector.checked : false,
-            includeGenre: optIncludeGenre ? optIncludeGenre.checked : false,
-            includeEpisodeDirector: optIncludeEpisodeDirector ? optIncludeEpisodeDirector.checked : false,
-            useEvolution: optEvolvingEmoji ? optEvolvingEmoji.checked : false,
-            emoji: emojiInput ? emojiInput.value : '',
-            format: formatBtn ? formatBtn.dataset.format : '1',
-            titleFormat: titleFormatBtn ? titleFormatBtn.dataset.titleFormat : '1'
+        const fields = {
+            includeYear: 'optIncludeYear', includeSE: 'optSeasonEpisode', includeName: 'optEpisodeName',
+            includeDate: 'optAirDate', includeRating: 'optIncludeRating', includeDirector: 'optIncludeDirector',
+            includeGenre: 'optIncludeGenre', includeEpisodeDirector: 'optIncludeEpisodeDirector'
         };
+        return { isTV: this.currentMode === 'tv', ...Object.fromEntries(
+            Object.entries(fields).map(([key, id]) => [key, Boolean(DOMUtils.getElement(id)?.checked)])
+        ) };
     }
 
     saveOptions() {
@@ -768,76 +644,25 @@ class TodoPopcornApp {
     }
 
     loadSavedOptions() {
-        const savedOptions = this.storageService.load(todoPopcornConfig.storage.keys.options);
-        if (savedOptions) {
-            if (savedOptions.currentMode) {
-                this.currentMode = savedOptions.currentMode;
-                const modeBtns = DOMUtils.getElements('.mode-btn');
-                modeBtns.forEach(btn => {
-                    DOMUtils.removeClass(btn, 'active');
-                    if (btn.dataset.mode === this.currentMode) {
-                        DOMUtils.addClass(btn, 'active');
-                    }
-                });
-                this.updateModeUI();
-            }
-
-            const checkboxes = {
-                optSeasonEpisode: 'optSeasonEpisode',
-                optEpisodeName: 'optEpisodeName',
-                optAirDate: 'optAirDate',
-                optIncludeRating: 'optIncludeRating',
-                optIncludeDirector: 'optIncludeDirector',
-                optIncludeGenre: 'optIncludeGenre',
-                optIncludeEpisodeDirector: 'optIncludeEpisodeDirector',
-                optEvolvingEmoji: 'optEvolvingEmoji'
+        const saved = this.storageService.load(todoPopcornConfig.storage.keys.options);
+        if (saved) {
+            if (['tv', 'multi-movies'].includes(saved.currentMode)) this.currentMode = saved.currentMode;
+            DOMUtils.getElements('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === this.currentMode));
+            this.updateModeUI();
+            const fields = {
+                includeYear: 'optIncludeYear', includeSE: 'optSeasonEpisode', includeName: 'optEpisodeName',
+                includeDate: 'optAirDate', includeRating: 'optIncludeRating', includeDirector: 'optIncludeDirector',
+                includeGenre: 'optIncludeGenre', includeEpisodeDirector: 'optIncludeEpisodeDirector'
             };
-
-            Object.entries(checkboxes).forEach(([key, id]) => {
-                if (savedOptions[key] !== undefined) {
-                    const element = DOMUtils.getElement(id);
-                    if (element) element.checked = savedOptions[key];
-                }
+            Object.entries(fields).forEach(([key, id]) => {
+                if (typeof saved[key] === 'boolean') DOMUtils.getElement(id).checked = saved[key];
             });
-
-            if (savedOptions.emoji !== undefined) {
-                const emojiInput = DOMUtils.getElement('emojiInput');
-                if (emojiInput) emojiInput.value = savedOptions.emoji;
-            }
-
-            if (savedOptions.format) {
-                const formatBtns = DOMUtils.getElements('.format-btn');
-                formatBtns.forEach(btn => {
-                    DOMUtils.removeClass(btn, 'active');
-                    if (btn.dataset.format === savedOptions.format) {
-                        DOMUtils.addClass(btn, 'active');
-                    }
-                });
-            }
-
-            if (savedOptions.titleFormat) {
-                const titleFormatBtns = DOMUtils.getElements('.title-format-btn');
-                titleFormatBtns.forEach(btn => {
-                    DOMUtils.removeClass(btn, 'active');
-                    if (btn.dataset.titleFormat === savedOptions.titleFormat) {
-                        DOMUtils.addClass(btn, 'active');
-                    }
-                });
-            }
-
-            if (savedOptions.language) {
-                this.tmdbService.language = savedOptions.language;
-                const languageBtns = DOMUtils.getElements('.language-btn');
-                languageBtns.forEach(btn => {
-                    DOMUtils.removeClass(btn, 'active');
-                    if (btn.dataset.language === savedOptions.language) {
-                        DOMUtils.addClass(btn, 'active');
-                    }
-                });
-            }
-
-            this.updatePreview();
+            if (['es-ES', 'es-MX', 'en-US'].includes(saved.language)) this.tmdbService.language = saved.language;
+            DOMUtils.getElements('.language-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.language === this.tmdbService.language));
+            // Persist only supported preferences; legacy emoji and format values are discarded.
+            this.saveOptions();
         }
+        this.updatePreview();
     }
 
     showAlert(message) {
@@ -1218,7 +1043,7 @@ class TodoPopcornApp {
                     ep.director = await this.tmdbService.getEpisodeDirector(items[0].id, ep.season, ep.episode);
                 }
             }
-            this.lastGeneratedOutput = { document: PopcornExport.build(items, episodes, options), failedSeasons };
+            this.lastGeneratedOutput = { document: PopcornExport.build(items, episodes, options), failedSeasons, episodes: options.isTV ? episodes : [] };
             this.viewPreviousOutput();
             DOMUtils.getElement('viewPreviousBtn').disabled = false;
         } catch (_) {
@@ -1239,7 +1064,8 @@ class TodoPopcornApp {
         DOMUtils.getElement('incompleteWarning').hidden = !failedSeasons.length;
         DOMUtils.getElement('incompleteMessage').textContent = `Serie incompleta: no se pudieron descargar las temporadas ${failedSeasons.join(', ')}. Vuelve a seleccionar la serie para reintentar o acepta exportar sin esas temporadas.`;
         DOMUtils.getElement('acceptIncomplete').checked = false;
-        PopcornExport.render(document, DOMUtils.getElement('outputPreview'));
+        PopcornExport.render(document, DOMUtils.getElement('outputPreview'), this.lastGeneratedOutput.episodes);
+        DOMUtils.getElement('jsonDisclosure').open = !window.matchMedia('(max-width: 600px)').matches;
         this.updateCopyState();
         DOMUtils.getElement('outputModal').classList.add('visible');
     }
